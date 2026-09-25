@@ -1,0 +1,20 @@
+---
+import { getCollection } from 'astro:content';
+import TerminalPanel from '../TerminalPanel.astro';
+import ProjectCard from '../ProjectCard.astro';
+import Button from '../Button.astro';
+
+const projects = (await getCollection('projects'))
+  .filter((project) => project.data.featured)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .slice(0, 4);
+---
+
+<TerminalPanel label="projects" class="w-full">
+  <div class="grid items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4">
+    {projects.map((project) => <ProjectCard project={project} />)}
+  </div>
+  <div class="mt-10 flex justify-center">
+    <Button href="/projects">view all projects</Button>
+  </div>
+</TerminalPanel>

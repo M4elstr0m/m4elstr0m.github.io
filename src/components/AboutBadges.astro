@@ -1,0 +1,57 @@
+---
+import SkillBadge from './SkillBadge.astro';
+import { findIcon } from '../lib/find-icon';
+
+interface Props {
+  interests?: string[];
+  stack?: string[];
+  tools?: string[];
+}
+
+const { interests = [], stack = [], tools = [] } = Astro.props;
+---
+
+{
+  interests.length > 0 && (
+    <div class="space-y-3">
+      <h2 class="text-sm uppercase tracking-[0.25em] text-tui-muted">
+        <span class="text-tui-green">▪</span> interests
+      </h2>
+      <div class="flex flex-wrap gap-3">
+        {interests.map((interest) => (
+          <SkillBadge label={interest} color="green" />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+{
+  stack.length > 0 && (
+    <div class="space-y-3">
+      <h2 class="text-sm uppercase tracking-[0.25em] text-tui-muted">
+        <span class="text-tui-cyan">▪</span> stack
+      </h2>
+      <div class="flex flex-wrap gap-3">
+        {stack.map((tech) => (
+          <SkillBadge label={tech} icon={findIcon(tech)} color="cyan" />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+{
+  tools.length > 0 && (
+    <div class="space-y-3">
+      <h2 class="text-sm uppercase tracking-[0.25em] text-tui-muted">
+        <span class="text-tui-orange">▪</span> tools
+      </h2>
+      <div class="flex flex-wrap gap-3">
+        {tools.map((tool) => (
+          <SkillBadge label={tool} icon={findIcon(tool)} color="orange" />
+        ))}
+      </div>
+    </div>
+  )
+}

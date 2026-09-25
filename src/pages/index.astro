@@ -1,21 +1,49 @@
 ---
+import { slide } from 'astro:transitions';
 import Layout from '../layouts/Layout.astro';
+import AboutSection from '../components/sections/AboutSection.astro';
+import ProjectsPreviewSection from '../components/sections/ProjectsPreviewSection.astro';
+import ContactSection from '../components/sections/ContactSection.astro';
+import ScrollHint from '../components/ScrollHint.astro';
+import SwipeHint from '../components/SwipeHint.astro';
 ---
 
 <Layout
-  title="M4elstr0m: Work in Progress"
-  description="Portfolio of M4elstr0m, a cybersecurity, OSINT, and software developer working primarily in Go and Rust. Currently under construction."
+  title="M4elstr0m"
+  description="Portfolio of M4elstr0m, a security-minded developer working primarily in Go and Rust, focused on OSINT and offensive security tooling."
 >
-  <main class="flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center">
-    <p class="flex items-center gap-2 text-sm text-emerald-400">
-      <span class="inline-block h-2 w-2 rounded-full bg-emerald-400"></span>
-      HTTP/1.1 200 OK
-    </p>
-    <h1 class="text-3xl font-semibold tracking-tight text-slate-100 sm:text-4xl">
-      Work in Progress
-    </h1>
-    <p class="max-w-md text-sm text-slate-400">
-      This site is being built. Check back soon.
-    </p>
+  <main>
+    <section
+      id="about"
+      class="relative flex min-h-[calc(100vh-5rem)] snap-start scroll-mt-20 items-center px-4 py-12 sm:px-8"
+    >
+      <div class="relative w-full">
+        <div class="w-full" data-swipe-pair transition:name="about-page" transition:animate={slide({ duration: '0.4s' })}>
+          <AboutSection />
+        </div>
+        <SwipeHint target="/about" />
+      </div>
+      <ScrollHint target="#projects" />
+    </section>
+    <section id="projects" class="relative flex min-h-[calc(100vh-5rem)] snap-start scroll-mt-20 items-stretch">
+      <div
+        class="flex w-full items-center px-4 py-12 sm:px-8"
+        data-swipe-pair
+        transition:name="projects-page"
+        transition:animate={slide({ duration: '0.4s' })}
+      >
+        <div class="relative w-full">
+          <ProjectsPreviewSection />
+          <SwipeHint target="/projects" />
+        </div>
+      </div>
+      <ScrollHint target="#contact" />
+    </section>
+    <section
+      id="contact"
+      class="relative flex min-h-[calc(100vh-5rem)] snap-start scroll-mt-20 items-center px-4 py-12 sm:px-8"
+    >
+      <ContactSection />
+    </section>
   </main>
 </Layout>

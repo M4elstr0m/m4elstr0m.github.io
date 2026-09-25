@@ -1,0 +1,45 @@
+---
+import { slide } from 'astro:transitions';
+import { getCollection, getEntry } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import ProjectGrid from '../../components/ProjectGrid';
+import { findIcon } from '../../lib/find-icon';
+import { categorizeTag, tagColorClasses } from '../../lib/categorize-tag';
+
+const about = await getEntry('pages', 'about');
+const categories = {
+  interests: about?.data.interests ?? [],
+  stack: about?.data.stack ?? [],
+  tools: about?.data.tools ?? [],
+};
+
+const entries = await getCollection('projects');
+const projects = entries
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .map((entry) => ({
+    slug: entry.id,
+    title: entry.data.title,
+    summary: entry.data.summary,
+    stack: entry.data.stack.map((tech) => ({
+      label: tech,
+      icon: findIcon(tech),
+      colorClass: tagColorClasses[categorizeTag(tech, categories)],
+    })),
+    cover: entry.data.cover.src,
+    private: entry.data.private,
+  }));
+---
+
+<Layout title="M4elstr0m: Projects" description="Full list of projects by M4elstr0m, spanning Go, Rust, OSINT, and offensive security tooling.">
+  <main
+    class="px-4 py-12 sm:px-8"
+    data-swipe-pair
+    transition:name="projects-page"
+    transition:animate={slide({ duration: '0.4s' })}
+  >
+    <h1 class="mb-10 text-2xl font-bold uppercase tracking-widest text-tui-gold">
+      <span class="text-tui-green">$</span> projects
+    </h1>
+    <ProjectGrid client:load projects={projects} />
+  </main>
+</Layout>

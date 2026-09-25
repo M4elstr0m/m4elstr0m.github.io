@@ -1,0 +1,69 @@
+---
+import { slide } from 'astro:transitions';
+import { getEntry, render } from 'astro:content';
+import Layout from '../layouts/Layout.astro';
+import TerminalPanel from '../components/TerminalPanel.astro';
+import AboutBadges from '../components/AboutBadges.astro';
+import WhoAmI from '../components/WhoAmI.astro';
+import ScrollHint from '../components/ScrollHint.astro';
+import LucideIcon from '../components/LucideIcon.astro';
+
+const about = await getEntry('pages', 'about');
+if (!about) throw new Error('Missing data/pages/about.md');
+const { Content: Intro } = await render(about);
+const { interests, stack, tools } = about.data;
+
+const aboutExtended = await getEntry('pages', 'about-extended');
+if (!aboutExtended) throw new Error('Missing data/pages/about-extended.md');
+const { Content: Extended } = await render(aboutExtended);
+---
+
+<Layout
+  title="M4elstr0m: About"
+  description="More about M4elstr0m, a security-minded developer working primarily in Go and Rust."
+>
+  <main>
+    <section
+      id="about-cover"
+      class="relative flex min-h-[calc(100vh-5rem)] snap-start scroll-mt-20 items-center px-4 py-12 sm:px-8"
+    >
+      <div class="w-full" data-swipe-pair transition:name="about-page" transition:animate={slide({ duration: '0.4s' })}>
+        <TerminalPanel
+          label="about"
+          class="w-full min-h-[80vh]"
+          bodyClass="flex flex-col items-center justify-center gap-8 text-center"
+        >
+          <img
+            src="https://github.com/M4elstr0m.png?size=600"
+            alt="M4elstr0m"
+            class="h-56 w-56 rounded-full border border-tui-border object-cover sm:h-72 sm:w-72"
+          />
+          <WhoAmI class="justify-center" />
+          <h1 class="text-5xl font-bold tracking-tight text-tui-text sm:text-7xl">M4elstr0m</h1>
+        </TerminalPanel>
+      </div>
+      <ScrollHint target="#about-details" />
+    </section>
+    <section
+      id="about-details"
+      class="relative flex min-h-[calc(100vh-5rem)] snap-start scroll-mt-20 items-center px-4 py-12 sm:px-8"
+    >
+      <TerminalPanel label="whoami" class="w-full min-h-[80vh]" bodyClass="flex flex-col gap-10 py-10 lg:flex-row lg:items-center">
+        <div class="flex-1 space-y-10">
+          <WhoAmI />
+          <div class="prose prose-invert max-w-2xl text-lg leading-relaxed sm:text-xl prose-p:text-tui-text prose-strong:text-tui-cyan">
+            <Intro />
+          </div>
+          <div class="prose prose-invert max-w-2xl text-base leading-relaxed prose-p:text-tui-muted">
+            <Extended />
+          </div>
+          <AboutBadges interests={interests} stack={stack} tools={tools} />
+        </div>
+        <div class="hidden shrink-0 flex-col items-center justify-center gap-2 border border-dashed border-tui-border text-tui-muted lg:flex lg:h-64 lg:w-64">
+          <LucideIcon name="image" class="h-10 w-10" />
+          <span class="text-[10px] uppercase tracking-[0.25em]">image pending</span>
+        </div>
+      </TerminalPanel>
+    </section>
+  </main>
+</Layout>

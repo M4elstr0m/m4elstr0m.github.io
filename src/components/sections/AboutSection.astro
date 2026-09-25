@@ -1,0 +1,33 @@
+---
+import { getEntry, render } from 'astro:content';
+import TerminalPanel from '../TerminalPanel.astro';
+import Button from '../Button.astro';
+import AboutBadges from '../AboutBadges.astro';
+import WhoAmI from '../WhoAmI.astro';
+
+const about = await getEntry('pages', 'about');
+if (!about) throw new Error('Missing data/pages/about.md');
+const { Content: Intro } = await render(about);
+const { interests, stack, tools } = about.data;
+---
+
+<TerminalPanel label="about" class="w-full min-h-[80vh]" bodyClass="flex flex-col justify-center gap-10 py-10">
+  <div class="flex flex-col items-center gap-6 sm:flex-row sm:items-center">
+    <img
+      src="https://github.com/M4elstr0m.png?size=500"
+      alt="M4elstr0m"
+      class="h-40 w-40 shrink-0 rounded-full border border-tui-border object-cover sm:h-56 sm:w-56"
+    />
+    <div class="space-y-4 text-center sm:text-left">
+      <WhoAmI class="justify-center sm:justify-start" />
+      <h1 class="text-3xl font-bold tracking-tight text-tui-text sm:text-4xl">Hey!</h1>
+      <div class="prose prose-invert max-w-2xl text-lg leading-relaxed sm:text-xl prose-p:text-tui-text prose-strong:text-tui-cyan">
+        <Intro />
+      </div>
+    </div>
+  </div>
+
+  <AboutBadges interests={interests} stack={stack} tools={tools} />
+
+  <Button href="/about" class="self-start">read more</Button>
+</TerminalPanel>

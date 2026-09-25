@@ -1,0 +1,100 @@
+---
+import LucideIcon from './LucideIcon.astro';
+
+const links = [
+  { href: '/about', label: 'about', section: 'about' },
+  { href: '/projects', label: 'projects', section: 'projects' },
+  { href: '/#contact', label: 'contact', section: null },
+];
+
+const path = Astro.url.pathname;
+const isActive = (href: string) => href !== '/#contact' && (path === href || path.startsWith(`${href}/`));
+---
+
+<nav class="fixed left-1/2 top-5 z-50 -translate-x-1/2 border border-tui-border bg-tui-panel">
+  <ul class="flex items-stretch divide-x divide-tui-border text-[10px] uppercase tracking-[0.15em] sm:text-xs sm:tracking-[0.3em]">
+    <li>
+      <a
+        href="/"
+        aria-label="Home"
+        class="flex h-full items-center px-3 text-tui-muted transition-colors hover:bg-tui-gold hover:text-tui-panel sm:px-4"
+      >
+        <LucideIcon name="house" class="h-4 w-4" />
+      </a>
+    </li>
+    {
+      links.map((link) => (
+        <li>
+          <a
+            href={link.href}
+            data-carousel-section={link.section}
+            class:list={[
+              'flex h-full items-center px-3 py-2.5 transition-colors sm:px-5',
+              isActive(link.href)
+                ? 'bg-tui-gold font-bold text-tui-panel'
+                : 'text-tui-text hover:bg-tui-gold hover:text-tui-panel',
+            ]}
+          >
+            {link.label}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<script>
+  import { navigate } from 'astro:transitions/client';
+
+  const NAVBAR_OFFSET = 80;
+
+  function isSectionAligned(id: string) {
+    const el = document.getElementById(id);
+    return el ? Math.abs(el.getBoundingClientRect().top - NAVBAR_OFFSET) < 10 : false;
+  }
+
+  const homeLink = document.querySelector<HTMLAnchorElement>('a[aria-label="Home"]');
+  homeLink?.addEventListener('click', (event) => {
+    if (location.pathname === '/' && isSectionAligned('about')) {
+      event.preventDefault();
+    }
+  });
+
+  for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-carousel-section]')) {
+    link.addEventListener('click', (event) => {
+      const href = link.getAttribute('href');
+      if (href && location.pathname === href) {
+        event.preventDefault();
+        return;
+      }
+
+      const sectionId = link.dataset.carouselSection;
+      if (!sectionId || location.pathname !== '/') return;
+
+      const section = document.getElementById(sectionId);
+      if (!section) return;
+
+      if (isSectionAligned('contact')) {
+        document.documentElement.dataset.leavingContact = 'true';
+      }
+
+      const isAligned = isSectionAligned(sectionId);
+      if (isAligned) return;
+
+      event.preventDefault();
+      if (!href) return;
+
+      let settled = false;
+      const proceed = () => {
+        if (settled) return;
+        settled = true;
+        navigate(href);
+      };
+
+      window.addEventListener('scrollend', proceed, { once: true });
+      setTimeout(proceed, 700);
+
+      section.scrollIntoView({ behavior: 'smooth' });
+    });
+  }
+</script>

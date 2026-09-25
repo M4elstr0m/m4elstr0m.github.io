@@ -1,0 +1,31 @@
+---
+import { getEntry, render } from 'astro:content';
+import { siGithub } from 'simple-icons';
+import TerminalPanel from '../TerminalPanel.astro';
+import Icon from '../Icon.astro';
+import Button from '../Button.astro';
+
+const contact = await getEntry('pages', 'contact');
+if (!contact) throw new Error('Missing data/pages/contact.md');
+const { Content } = await render(contact);
+const { heading, github } = contact.data;
+---
+
+<TerminalPanel
+  label="contact"
+  class="w-full min-h-[50vh]"
+  bodyClass="flex flex-col items-center justify-center gap-6 text-center"
+>
+  <h2 class="text-3xl font-bold tracking-tight text-tui-gold sm:text-4xl">{heading}</h2>
+  <div class="prose prose-invert max-w-md text-base prose-p:text-tui-muted sm:text-lg">
+    <Content />
+  </div>
+  {
+    github && (
+      <Button href={github}>
+        <Icon icon={siGithub} class="h-5 w-5" />
+        github.com/M4elstr0m
+      </Button>
+    )
+  }
+</TerminalPanel>

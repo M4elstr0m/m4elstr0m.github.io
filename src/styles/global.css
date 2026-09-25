@@ -1,1 +1,114 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
+@import "./themes/terminal-user-interface.css";
+
+html {
+  scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
+  scrollbar-color: var(--color-tui-border) var(--color-tui-bg);
+  scrollbar-width: thin;
+}
+
+body {
+  background-color: var(--color-tui-bg);
+  background-image: radial-gradient(color-mix(in srgb, var(--color-tui-text) 15%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+html::-webkit-scrollbar,
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+html::-webkit-scrollbar-track,
+::-webkit-scrollbar-track {
+  background: var(--color-tui-bg);
+}
+
+html::-webkit-scrollbar-thumb,
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-tui-border);
+  border: 3px solid var(--color-tui-bg);
+}
+
+html::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-tui-gold);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+@keyframes tui-root-slide-up-out {
+  to {
+    transform: translateY(-100%);
+  }
+}
+
+@keyframes tui-root-slide-up-in {
+  from {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes tui-root-slide-down-out {
+  to {
+    transform: translateY(100%);
+  }
+}
+
+@keyframes tui-root-slide-down-in {
+  from {
+    transform: translateY(-100%);
+  }
+}
+
+html[data-contact-transition='up']::view-transition-old(root) {
+  animation: 0.4s cubic-bezier(0.76, 0, 0.24, 1) both tui-root-slide-up-out;
+}
+
+html[data-contact-transition='up']::view-transition-new(root) {
+  animation: 0.4s cubic-bezier(0.76, 0, 0.24, 1) both tui-root-slide-up-in;
+}
+
+html[data-contact-transition='down']::view-transition-old(root) {
+  animation: 0.4s cubic-bezier(0.76, 0, 0.24, 1) both tui-root-slide-down-out;
+}
+
+html[data-contact-transition='down']::view-transition-new(root) {
+  animation: 0.4s cubic-bezier(0.76, 0, 0.24, 1) both tui-root-slide-down-in;
+}
+
+html[data-contact-transition='up']::view-transition-new(about-page),
+html[data-contact-transition='up']::view-transition-new(projects-page) {
+  animation: 0.4s cubic-bezier(0.76, 0, 0.24, 1) both tui-root-slide-up-in !important;
+}
+
+html[data-contact-transition='down']::view-transition-new(about-page),
+html[data-contact-transition='down']::view-transition-new(projects-page) {
+  animation: 0.4s cubic-bezier(0.76, 0, 0.24, 1) both tui-root-slide-down-in !important;
+}
+
+@keyframes tui-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.tui-cursor {
+  animation: tui-blink 1s step-end infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tui-cursor {
+    animation: none;
+  }
+}

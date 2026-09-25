@@ -1,0 +1,34 @@
+---
+import Icon from './Icon.astro';
+
+interface IconData {
+  path: string;
+  title: string;
+}
+
+interface Props {
+  label: string;
+  icon?: IconData;
+  color?: 'gold' | 'cyan' | 'orange' | 'green' | 'red';
+}
+
+const { label, icon, color = 'gold' } = Astro.props;
+
+const colorClass = {
+  gold: 'text-tui-gold hover:border-tui-gold hover:shadow-[0_0_10px_var(--color-tui-gold)]',
+  cyan: 'text-tui-cyan hover:border-tui-cyan hover:shadow-[0_0_10px_var(--color-tui-cyan)]',
+  orange: 'text-tui-orange hover:border-tui-orange hover:shadow-[0_0_10px_var(--color-tui-orange)]',
+  green: 'text-tui-green hover:border-tui-green hover:shadow-[0_0_10px_var(--color-tui-green)]',
+  red: 'text-tui-red hover:border-tui-red hover:shadow-[0_0_10px_var(--color-tui-red)]',
+}[color];
+---
+
+<span
+  class:list={[
+    'inline-flex items-center gap-2 border border-tui-border px-3 py-1.5 text-xs uppercase tracking-wider transition-all duration-200 hover:-translate-y-0.5',
+    colorClass,
+  ]}
+>
+  {icon && <Icon icon={icon} class="h-3.5 w-3.5" />}
+  {label}
+</span>

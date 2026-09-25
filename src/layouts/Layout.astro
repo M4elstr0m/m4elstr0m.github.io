@@ -1,5 +1,7 @@
 ---
+import { ClientRouter } from 'astro:transitions';
 import BaseHead from '../components/BaseHead.astro';
+import Navbar from '../components/Navbar.astro';
 import '../styles/global.css';
 
 interface Props {
@@ -14,8 +16,163 @@ const { title, description } = Astro.props;
 <html lang="en">
   <head>
     <BaseHead title={title} description={description} />
+    <ClientRouter />
   </head>
-  <body class="min-h-screen bg-slate-950 font-mono text-slate-200 antialiased">
-    <slot />
+  <body class="min-h-screen bg-tui-bg font-mono text-tui-text antialiased">
+    <canvas id="ascii-storm" class="pointer-events-none fixed inset-0 -z-10" transition:persist></canvas>
+    <Navbar transition:persist />
+    <div class="pt-20">
+      <slot />
+    </div>
   </body>
 </html>
+
+<script>
+  interface Particle {
+    x: number;
+    y: number;
+    char: string;
+    born: number;
+    life: number;
+    vy: number;
+  }
+
+  interface Storm {
+    canvas: HTMLCanvasElement | null;
+    ctx: CanvasRenderingContext2D | null;
+    particles: Particle[];
+    lastSpawn: number;
+    ready: boolean;
+  }
+
+  declare global {
+    interface Window {
+      __asciiStorm?: Storm;
+    }
+  }
+
+  function bindStormCanvas(storm: Storm) {
+    const el = document.getElementById('ascii-storm');
+    if (el instanceof HTMLCanvasElement && el !== storm.canvas) {
+      storm.canvas = el;
+      storm.ctx = el.getContext('2d');
+      el.width = window.innerWidth;
+      el.height = window.innerHeight;
+    }
+  }
+
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    const storm: Storm = window.__asciiStorm ?? { canvas: null, ctx: null, particles: [], lastSpawn: 0, ready: false };
+    window.__asciiStorm = storm;
+
+    bindStormCanvas(storm);
+    document.addEventListener('astro:page-load', () => bindStormCanvas(storm));
+
+    if (!storm.ready) {
+      storm.ready = true;
+      const chars = '#$%&*+-/<>=~^:;.,_|01'.split('');
+
+      window.addEventListener('resize', () => {
+        if (storm.canvas) {
+          storm.canvas.width = window.innerWidth;
+          storm.canvas.height = window.innerHeight;
+        }
+      });
+
+      window.addEventListener('mousemove', (event) => {
+        const now = performance.now();
+        if (now - storm.lastSpawn < 12) return;
+        storm.lastSpawn = now;
+        for (let i = 0; i < 3; i++) {
+          storm.particles.push({
+            x: event.clientX + (Math.random() - 0.5) * 60,
+            y: event.clientY + (Math.random() - 0.5) * 60,
+            char: chars[Math.floor(Math.random() * chars.length)],
+            born: now,
+            life: 500 + Math.random() * 400,
+            vy: -0.2 - Math.random() * 0.3,
+          });
+        }
+        if (storm.particles.length > 400) storm.particles.splice(0, storm.particles.length - 400);
+      });
+
+      function frame(now: number) {
+        const { canvas, ctx } = storm;
+        if (canvas && ctx) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          storm.particles = storm.particles.filter((p) => now - p.born < p.life);
+          ctx.font = '11px "JetBrains Mono", monospace';
+          for (const p of storm.particles) {
+            const age = (now - p.born) / p.life;
+            p.y += p.vy;
+            ctx.fillStyle = '#f5f5f5';
+            ctx.globalAlpha = (1 - age) * 0.9;
+            ctx.fillText(p.char, p.x, p.y);
+          }
+          ctx.globalAlpha = 1;
+        }
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    }
+  }
+
+  function depth(pathname: string) {
+    return pathname.split('/').filter(Boolean).length;
+  }
+
+  document.addEventListener('astro:before-preparation', (event) => {
+    const fromDepth = depth(event.from.pathname);
+    const toDepth = depth(event.to.pathname);
+    if (toDepth < fromDepth) {
+      event.direction = 'back';
+    } else if (toDepth > fromDepth) {
+      event.direction = 'forward';
+    }
+
+    if (event.to.pathname === '/' && event.from.pathname !== '/') {
+      const section =
+        event.to.hash === '#contact'
+          ? 'contact'
+          : event.from.pathname.startsWith('/about')
+            ? 'about'
+            : event.from.pathname.startsWith('/projects')
+              ? 'projects'
+              : null;
+      if (section) sessionStorage.setItem('landing-section', section);
+    }
+
+    const enteringContact = event.to.pathname === '/' && event.to.hash === '#contact';
+    const leavingContact = document.documentElement.dataset.leavingContact === 'true';
+    delete document.documentElement.dataset.leavingContact;
+
+    if (enteringContact) {
+      document.documentElement.dataset.contactTransition = 'up';
+    } else if (leavingContact) {
+      document.documentElement.dataset.contactTransition = 'down';
+    } else {
+      delete document.documentElement.dataset.contactTransition;
+    }
+
+    if (enteringContact || leavingContact) {
+      for (const el of document.querySelectorAll<HTMLElement>('[data-swipe-pair]')) {
+        el.style.viewTransitionName = 'none';
+      }
+    }
+  });
+
+  document.addEventListener('astro:after-swap', () => {
+    if (location.pathname !== '/') return;
+    const section = sessionStorage.getItem('landing-section');
+    if (!section) return;
+    sessionStorage.removeItem('landing-section');
+    document.getElementById(section)?.scrollIntoView({ behavior: 'instant' });
+  });
+
+  document.addEventListener('astro:page-load', () => {
+    for (const el of document.querySelectorAll<HTMLElement>('[data-swipe-pair]')) {
+      el.style.viewTransitionName = '';
+    }
+  });
+</script>
+

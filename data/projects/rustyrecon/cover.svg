@@ -1,0 +1,12 @@
+<svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#30363d" stroke-width="1"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="#0d1117" />
+  <rect width="1200" height="630" fill="url(#grid)" />
+  <rect x="40" y="40" width="1120" height="550" fill="none" stroke="#30363d" stroke-width="2" />
+  <text x="80" y="330" font-family="Fira Code, monospace" font-size="72" font-weight="700" fill="#e0af68">rustyrecon</text>
+  <text x="80" y="380" font-family="Fira Code, monospace" font-size="24" letter-spacing="4" fill="#565f89">SAMPLE PROJECT COVER</text>
+</svg>

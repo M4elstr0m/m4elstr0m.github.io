@@ -1,0 +1,17 @@
+---
+interface IconData {
+  path: string;
+  title: string;
+}
+
+interface Props {
+  icon: IconData;
+  class?: string;
+}
+
+const { icon, class: className } = Astro.props;
+---
+
+<svg viewBox="0 0 24 24" role="img" aria-label={icon.title} class:list={['h-5 w-5 fill-current', className]}>
+  <path d={icon.path} />
+</svg>
