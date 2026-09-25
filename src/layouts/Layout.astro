@@ -121,6 +121,9 @@ const { title, description } = Astro.props;
     return pathname.split('/').filter(Boolean).length;
   }
 
+  let pendingContactTransition: string | null = null;
+  let pendingMultiHop = false;
+
   document.addEventListener('astro:before-preparation', (event) => {
     const fromDepth = depth(event.from.pathname);
     const toDepth = depth(event.to.pathname);
@@ -146,12 +149,32 @@ const { title, description } = Astro.props;
     const leavingContact = document.documentElement.dataset.leavingContact === 'true';
     delete document.documentElement.dataset.leavingContact;
 
-    if (enteringContact) {
-      document.documentElement.dataset.contactTransition = 'up';
-    } else if (leavingContact) {
-      document.documentElement.dataset.contactTransition = 'down';
+    pendingContactTransition = enteringContact ? 'up' : leavingContact ? 'down' : null;
+    pendingMultiHop = document.documentElement.dataset.multiHop === 'true';
+    delete document.documentElement.dataset.multiHop;
+
+    // document.startViewTransition() captures the "old" snapshot synchronously right
+    // after this event finishes, using whatever CSS state exists at that instant - so
+    // the flag must already be on the CURRENT document here, not only on newDocument
+    // in astro:before-swap below (which runs later, inside the update callback, and
+    // only covers the "new" side / survives the attribute-wiping swap does).
+    if (pendingContactTransition) {
+      document.documentElement.dataset.contactTransition = pendingContactTransition;
     } else {
       delete document.documentElement.dataset.contactTransition;
+    }
+  });
+
+  // Astro's swap rebuilds <html>'s attributes from event.newDocument.documentElement,
+  // discarding anything set on the live document beforehand (see swapRootAttributes
+  // in astro/dist/transitions/swap-functions.js) - so these flags must ALSO be written
+  // onto the incoming document here to survive into the post-swap live DOM.
+  document.addEventListener('astro:before-swap', (event) => {
+    if (pendingContactTransition) {
+      event.newDocument.documentElement.dataset.contactTransition = pendingContactTransition;
+    }
+    if (pendingMultiHop) {
+      event.newDocument.documentElement.dataset.multiHop = 'true';
     }
   });
 
@@ -161,6 +184,11 @@ const { title, description } = Astro.props;
     if (!section) return;
     sessionStorage.removeItem('landing-section');
     document.getElementById(section)?.scrollIntoView({ behavior: 'instant' });
+  });
+
+  document.addEventListener('astro:page-load', () => {
+    delete document.documentElement.dataset.contactTransition;
+    delete document.documentElement.dataset.multiHop;
   });
 </script>
 

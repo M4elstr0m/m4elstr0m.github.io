@@ -47,10 +47,34 @@ const isActive = (href: string) => href !== '/#contact' && (path === href || pat
   import { navigate } from 'astro:transitions/client';
 
   const NAVBAR_OFFSET = 80;
+  const BASE_SWIPE_MS = 400;
 
   function isSectionAligned(id: string) {
     const el = document.getElementById(id);
     return el ? Math.abs(el.getBoundingClientRect().top - NAVBAR_OFFSET) < 10 : false;
+  }
+
+  function animatedScrollTo(targetY: number, duration: number): Promise<void> {
+    return new Promise((resolve) => {
+      const startY = window.scrollY;
+      const delta = targetY - startY;
+      if (Math.abs(delta) < 1) {
+        resolve();
+        return;
+      }
+      const start = performance.now();
+      function step(now: number) {
+        const t = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - t, 3);
+        window.scrollTo({ top: startY + delta * eased, left: 0, behavior: 'instant' });
+        if (t < 1) {
+          requestAnimationFrame(step);
+        } else {
+          resolve();
+        }
+      }
+      requestAnimationFrame(step);
+    });
   }
 
   function bindNavbar() {
@@ -91,17 +115,16 @@ const isActive = (href: string) => href !== '/#contact' && (path === href || pat
         event.preventDefault();
         if (!href) return;
 
-        let settled = false;
-        const proceed = () => {
-          if (settled) return;
-          settled = true;
+        const hopDuration = BASE_SWIPE_MS / 2;
+        document.documentElement.dataset.multiHop = 'true';
+
+        const targetY = window.scrollY + section.getBoundingClientRect().top - NAVBAR_OFFSET;
+        const previousSnapType = document.documentElement.style.scrollSnapType;
+        document.documentElement.style.scrollSnapType = 'none';
+        animatedScrollTo(targetY, hopDuration).then(() => {
+          document.documentElement.style.scrollSnapType = previousSnapType;
           navigate(href);
-        };
-
-        window.addEventListener('scrollend', proceed, { once: true });
-        setTimeout(proceed, 350);
-
-        section.scrollIntoView({ behavior: 'smooth' });
+        });
       });
     }
   }

@@ -7,6 +7,7 @@ html {
   scroll-snap-type: y mandatory;
   scrollbar-color: var(--color-tui-border) var(--color-tui-bg);
   scrollbar-width: thin;
+  scrollbar-gutter: stable;
 }
 
 body {
@@ -103,11 +104,13 @@ html[data-contact-transition='down']::view-transition-new(projects-page) {
   animation: 0.4s cubic-bezier(0.76, 0, 0.24, 1) both tui-root-slide-down-in !important;
 }
 
-html[data-contact-transition]::view-transition-group(about-page),
-html[data-contact-transition]::view-transition-group(projects-page) {
-  width: 100% !important;
-  height: 100% !important;
-  transform: none !important;
+html[data-multi-hop]::view-transition-old(root),
+html[data-multi-hop]::view-transition-new(root),
+html[data-multi-hop]::view-transition-old(about-page),
+html[data-multi-hop]::view-transition-new(about-page),
+html[data-multi-hop]::view-transition-old(projects-page),
+html[data-multi-hop]::view-transition-new(projects-page) {
+  animation-duration: 0.2s !important;
 }
 
 @keyframes tui-blink {
