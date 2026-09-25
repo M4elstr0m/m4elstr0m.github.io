@@ -15,7 +15,7 @@ import SwipeHint from '../components/SwipeHint.astro';
   <main>
     <section
       id="about"
-      class="relative flex min-h-[calc(100vh-5rem)] snap-start scroll-mt-20 items-center px-4 py-12 sm:px-8"
+      class="relative flex min-h-[calc(100vh-5rem)] snap-start scroll-mt-20 items-center px-4 pb-16 pt-8 sm:px-8"
     >
       <div class="relative w-full">
         <div class="w-full" transition:name="about-page" transition:animate={slide({ duration: '0.4s' })}>
@@ -46,3 +46,117 @@ import SwipeHint from '../components/SwipeHint.astro';
     </section>
   </main>
 </Layout>
+
+<script>
+  const SECTION_IDS = ['about', 'projects', 'contact'];
+  const NAVBAR_OFFSET = 80;
+  const WHEEL_THRESHOLD = 5;
+  const SCROLL_DURATION_MS = 450;
+  // Just long enough to swallow the handful of rapid-fire repeat events a
+  // single wheel notch/swipe-start can fire, short enough that a genuinely
+  // new, deliberate scroll right after is never blocked.
+  const ADVANCE_DEBOUNCE_MS = 150;
+
+  let currentIndex = 0;
+  let animationToken = 0;
+  let lastAdvanceTime = 0;
+  let attached = false;
+  let previousSnapType = '';
+
+  function findCurrentIndex() {
+    let best = 0;
+    let bestDist = Infinity;
+    SECTION_IDS.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const dist = Math.abs(el.getBoundingClientRect().top - NAVBAR_OFFSET);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = i;
+      }
+    });
+    return best;
+  }
+
+  // Drive the scroll ourselves instead of relying on native scroll-snap:
+  // with `scroll-snap-type` still active, the browser's own snap machinery
+  // can fight a JS-driven scroll for control of the final resting position
+  // (each of our incremental frame updates can look like a "settled" scroll
+  // to its heuristics), which is what made the page feel stuck or broken in
+  // earlier attempts. Disabling it for the duration this script is active
+  // removes that conflict entirely - CSS scroll-snap becomes redundant here
+  // anyway, since this script is now the only thing moving between sections.
+  //
+  // A new call here cancels whatever animation is still in flight (via the
+  // token check) and starts a fresh one from the current position, so a
+  // second deliberate scroll can redirect an in-progress transition instead
+  // of waiting for it to finish - that's what makes consecutive scrolls
+  // feel continuous rather than gated.
+  function animateScrollTo(targetY: number, duration: number) {
+    const token = ++animationToken;
+    const startY = window.scrollY;
+    const delta = targetY - startY;
+    if (Math.abs(delta) < 1) return;
+    const start = performance.now();
+    function step(now: number) {
+      if (token !== animationToken) return;
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      window.scrollTo({ top: startY + delta * eased, left: 0, behavior: 'instant' });
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function goToIndex(index: number) {
+    const el = document.getElementById(SECTION_IDS[index]);
+    if (!el) return;
+    currentIndex = index;
+    const targetY = window.scrollY + el.getBoundingClientRect().top - NAVBAR_OFFSET;
+    animateScrollTo(targetY, SCROLL_DURATION_MS);
+  }
+
+  function onWheel(event: WheelEvent) {
+    if (event.ctrlKey) return;
+    if (Math.abs(event.deltaY) < WHEEL_THRESHOLD) return;
+
+    event.preventDefault();
+
+    const now = performance.now();
+    if (now - lastAdvanceTime < ADVANCE_DEBOUNCE_MS) return;
+    lastAdvanceTime = now;
+
+    const direction = event.deltaY > 0 ? 1 : -1;
+    const target = currentIndex + direction;
+    if (target < 0 || target >= SECTION_IDS.length) return;
+
+    goToIndex(target);
+  }
+
+  function enableCarouselPaging() {
+    if (attached) return;
+    attached = true;
+    currentIndex = findCurrentIndex();
+    previousSnapType = document.documentElement.style.scrollSnapType;
+    document.documentElement.style.scrollSnapType = 'none';
+    window.addEventListener('wheel', onWheel, { passive: false });
+  }
+
+  function disableCarouselPaging() {
+    if (!attached) return;
+    attached = false;
+    document.documentElement.style.scrollSnapType = previousSnapType;
+    window.removeEventListener('wheel', onWheel);
+  }
+
+  if (location.pathname === '/') enableCarouselPaging();
+
+  document.addEventListener('astro:page-load', () => {
+    if (location.pathname === '/') enableCarouselPaging();
+    else disableCarouselPaging();
+  });
+
+  document.addEventListener('astro:before-preparation', (event) => {
+    if (event.from.pathname === '/' && event.to.pathname !== '/') disableCarouselPaging();
+  });
+</script>
