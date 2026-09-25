@@ -11,7 +11,11 @@ const path = Astro.url.pathname;
 const isActive = (href: string) => href !== '/#contact' && (path === href || path.startsWith(`${href}/`));
 ---
 
-<nav class="fixed left-1/2 top-5 z-50 -translate-x-1/2 border border-tui-border bg-tui-panel">
+<nav
+  class="fixed left-1/2 top-5 z-50 -translate-x-1/2 border border-tui-border bg-tui-panel"
+  transition:name="navbar"
+  transition:animate="none"
+>
   <ul class="flex items-stretch divide-x divide-tui-border text-[10px] uppercase tracking-[0.15em] sm:text-xs sm:tracking-[0.3em]">
     <li>
       <a

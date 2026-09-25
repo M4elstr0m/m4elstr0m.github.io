@@ -19,8 +19,8 @@ const { title, description } = Astro.props;
     <ClientRouter />
   </head>
   <body class="min-h-screen bg-tui-bg font-mono text-tui-text antialiased">
-    <canvas id="ascii-storm" class="pointer-events-none fixed inset-0 -z-10" transition:persist></canvas>
-    <Navbar transition:persist />
+    <canvas id="ascii-storm" class="pointer-events-none fixed inset-0 z-40" transition:persist></canvas>
+    <Navbar />
     <div class="pt-20">
       <slot />
     </div>
@@ -72,6 +72,19 @@ const { title, description } = Astro.props;
       storm.ready = true;
       const chars = '#$%&*+-/<>=~^:;.,_|01'.split('');
 
+      let panelRects: DOMRect[] = [];
+      function refreshPanelRects() {
+        panelRects = Array.from(document.querySelectorAll('.bg-tui-panel')).map((el) => el.getBoundingClientRect());
+      }
+      function isOverPanel(x: number, y: number) {
+        return panelRects.some((rect) => x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom);
+      }
+      refreshPanelRects();
+      window.addEventListener('scroll', refreshPanelRects, { passive: true });
+      window.addEventListener('resize', refreshPanelRects);
+      document.addEventListener('astro:page-load', refreshPanelRects);
+      setInterval(refreshPanelRects, 500);
+
       window.addEventListener('resize', () => {
         if (storm.canvas) {
           storm.canvas.width = window.innerWidth;
@@ -105,8 +118,9 @@ const { title, description } = Astro.props;
           for (const p of storm.particles) {
             const age = (now - p.born) / p.life;
             p.y += p.vy;
+            const dimmed = isOverPanel(p.x, p.y) ? 0.2 : 1;
             ctx.fillStyle = '#f5f5f5';
-            ctx.globalAlpha = (1 - age) * 0.9;
+            ctx.globalAlpha = (1 - age) * 0.9 * dimmed;
             ctx.fillText(p.char, p.x, p.y);
           }
           ctx.globalAlpha = 1;
@@ -116,6 +130,41 @@ const { title, description } = Astro.props;
       requestAnimationFrame(frame);
     }
   }
+
+  const EXTERNAL_LINK_SVG =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>';
+
+  function markExternalLinks() {
+    for (const link of document.querySelectorAll<HTMLAnchorElement>('a[href^="http"]')) {
+      if (link.dataset.externalMarked) continue;
+      link.dataset.externalMarked = 'true';
+
+      let url: URL;
+      try {
+        url = new URL(link.href);
+      } catch {
+        continue;
+      }
+      if (url.origin === location.origin) continue;
+
+      const wrapper = document.createElement('span');
+      wrapper.innerHTML = EXTERNAL_LINK_SVG;
+      const svg = wrapper.firstElementChild;
+      if (!(svg instanceof SVGElement)) continue;
+
+      svg.setAttribute('width', '0.75em');
+      svg.setAttribute('height', '0.75em');
+      svg.classList.add('shrink-0');
+      const display = getComputedStyle(link).display;
+      if (display !== 'flex' && display !== 'inline-flex') {
+        svg.classList.add('tui-external-icon');
+      }
+      link.appendChild(svg);
+    }
+  }
+
+  markExternalLinks();
+  document.addEventListener('astro:page-load', markExternalLinks);
 
   function depth(pathname: string) {
     return pathname.split('/').filter(Boolean).length;

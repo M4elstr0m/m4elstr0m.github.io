@@ -16,6 +16,12 @@ body {
   background-size: 22px 22px;
 }
 
+.tui-external-icon {
+  display: inline;
+  margin-left: 0.3em;
+  vertical-align: -0.125em;
+}
+
 html::-webkit-scrollbar,
 ::-webkit-scrollbar {
   width: 12px;
