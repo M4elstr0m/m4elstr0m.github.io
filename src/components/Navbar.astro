@@ -53,48 +53,59 @@ const isActive = (href: string) => href !== '/#contact' && (path === href || pat
     return el ? Math.abs(el.getBoundingClientRect().top - NAVBAR_OFFSET) < 10 : false;
   }
 
-  const homeLink = document.querySelector<HTMLAnchorElement>('a[aria-label="Home"]');
-  homeLink?.addEventListener('click', (event) => {
-    if (location.pathname === '/' && isSectionAligned('about')) {
-      event.preventDefault();
+  function bindNavbar() {
+    const homeLink = document.querySelector<HTMLAnchorElement>('a[aria-label="Home"]');
+    if (homeLink && !homeLink.dataset.bound) {
+      homeLink.dataset.bound = 'true';
+      homeLink.addEventListener('click', (event) => {
+        if (location.pathname === '/' && isSectionAligned('about')) {
+          event.preventDefault();
+        }
+      });
     }
-  });
 
-  for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-carousel-section]')) {
-    link.addEventListener('click', (event) => {
-      const href = link.getAttribute('href');
-      if (href && location.pathname === href) {
+    for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-carousel-section]')) {
+      if (link.dataset.bound) continue;
+      link.dataset.bound = 'true';
+
+      link.addEventListener('click', (event) => {
+        const href = link.getAttribute('href');
+        if (href && location.pathname === href) {
+          event.preventDefault();
+          return;
+        }
+
+        const sectionId = link.dataset.carouselSection;
+        if (!sectionId || location.pathname !== '/') return;
+
+        const section = document.getElementById(sectionId);
+        if (!section) return;
+
+        if (isSectionAligned('contact')) {
+          document.documentElement.dataset.leavingContact = 'true';
+        }
+
+        const isAligned = isSectionAligned(sectionId);
+        if (isAligned) return;
+
         event.preventDefault();
-        return;
-      }
+        if (!href) return;
 
-      const sectionId = link.dataset.carouselSection;
-      if (!sectionId || location.pathname !== '/') return;
+        let settled = false;
+        const proceed = () => {
+          if (settled) return;
+          settled = true;
+          navigate(href);
+        };
 
-      const section = document.getElementById(sectionId);
-      if (!section) return;
+        window.addEventListener('scrollend', proceed, { once: true });
+        setTimeout(proceed, 350);
 
-      if (isSectionAligned('contact')) {
-        document.documentElement.dataset.leavingContact = 'true';
-      }
-
-      const isAligned = isSectionAligned(sectionId);
-      if (isAligned) return;
-
-      event.preventDefault();
-      if (!href) return;
-
-      let settled = false;
-      const proceed = () => {
-        if (settled) return;
-        settled = true;
-        navigate(href);
-      };
-
-      window.addEventListener('scrollend', proceed, { once: true });
-      setTimeout(proceed, 700);
-
-      section.scrollIntoView({ behavior: 'smooth' });
-    });
+        section.scrollIntoView({ behavior: 'smooth' });
+      });
+    }
   }
+
+  bindNavbar();
+  document.addEventListener('astro:page-load', bindNavbar);
 </script>

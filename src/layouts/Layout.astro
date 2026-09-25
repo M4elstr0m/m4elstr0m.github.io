@@ -153,12 +153,6 @@ const { title, description } = Astro.props;
     } else {
       delete document.documentElement.dataset.contactTransition;
     }
-
-    if (enteringContact || leavingContact) {
-      for (const el of document.querySelectorAll<HTMLElement>('[data-swipe-pair]')) {
-        el.style.viewTransitionName = 'none';
-      }
-    }
   });
 
   document.addEventListener('astro:after-swap', () => {
@@ -167,12 +161,6 @@ const { title, description } = Astro.props;
     if (!section) return;
     sessionStorage.removeItem('landing-section');
     document.getElementById(section)?.scrollIntoView({ behavior: 'instant' });
-  });
-
-  document.addEventListener('astro:page-load', () => {
-    for (const el of document.querySelectorAll<HTMLElement>('[data-swipe-pair]')) {
-      el.style.viewTransitionName = '';
-    }
   });
 </script>
 

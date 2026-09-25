@@ -18,7 +18,7 @@ import SwipeHint from '../components/SwipeHint.astro';
       class="relative flex min-h-[calc(100vh-5rem)] snap-start scroll-mt-20 items-center px-4 py-12 sm:px-8"
     >
       <div class="relative w-full">
-        <div class="w-full" data-swipe-pair transition:name="about-page" transition:animate={slide({ duration: '0.4s' })}>
+        <div class="w-full" transition:name="about-page" transition:animate={slide({ duration: '0.4s' })}>
           <AboutSection />
         </div>
         <SwipeHint target="/about" />
@@ -28,7 +28,6 @@ import SwipeHint from '../components/SwipeHint.astro';
     <section id="projects" class="relative flex min-h-[calc(100vh-5rem)] snap-start scroll-mt-20 items-stretch">
       <div
         class="flex w-full items-center px-4 py-12 sm:px-8"
-        data-swipe-pair
         transition:name="projects-page"
         transition:animate={slide({ duration: '0.4s' })}
       >

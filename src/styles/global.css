@@ -83,14 +83,31 @@ html[data-contact-transition='down']::view-transition-new(root) {
   animation: 0.4s cubic-bezier(0.76, 0, 0.24, 1) both tui-root-slide-down-in;
 }
 
+html[data-contact-transition='up']::view-transition-old(about-page),
+html[data-contact-transition='up']::view-transition-old(projects-page) {
+  animation: 0.4s cubic-bezier(0.76, 0, 0.24, 1) both tui-root-slide-up-out !important;
+}
+
 html[data-contact-transition='up']::view-transition-new(about-page),
 html[data-contact-transition='up']::view-transition-new(projects-page) {
   animation: 0.4s cubic-bezier(0.76, 0, 0.24, 1) both tui-root-slide-up-in !important;
 }
 
+html[data-contact-transition='down']::view-transition-old(about-page),
+html[data-contact-transition='down']::view-transition-old(projects-page) {
+  animation: 0.4s cubic-bezier(0.76, 0, 0.24, 1) both tui-root-slide-down-out !important;
+}
+
 html[data-contact-transition='down']::view-transition-new(about-page),
 html[data-contact-transition='down']::view-transition-new(projects-page) {
   animation: 0.4s cubic-bezier(0.76, 0, 0.24, 1) both tui-root-slide-down-in !important;
+}
+
+html[data-contact-transition]::view-transition-group(about-page),
+html[data-contact-transition]::view-transition-group(projects-page) {
+  width: 100% !important;
+  height: 100% !important;
+  transform: none !important;
 }
 
 @keyframes tui-blink {
