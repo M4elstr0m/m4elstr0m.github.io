@@ -11,16 +11,20 @@ const { Content: Intro } = await render(about);
 const { interests, stack, tools } = about.data;
 ---
 
-<TerminalPanel label="about" class="w-full min-h-[80vh]" bodyClass="flex flex-col justify-center gap-10 py-10">
+<TerminalPanel
+  label="about"
+  class="w-full min-h-[70vh]"
+  bodyClass="flex flex-col justify-center gap-[clamp(1.5rem,4vh,2.5rem)] py-[clamp(1.5rem,4vh,2.5rem)]"
+>
   <div class="flex flex-col items-center gap-6 sm:flex-row sm:items-center">
     <img
       src="https://github.com/M4elstr0m.png?size=500"
       alt="M4elstr0m"
-      class="h-40 w-40 shrink-0 rounded-full border border-tui-border object-cover sm:h-56 sm:w-56"
+      class="h-[clamp(6rem,16vh,10rem)] w-[clamp(6rem,16vh,10rem)] shrink-0 rounded-full border border-tui-border object-cover"
     />
     <div class="space-y-4 text-center sm:text-left">
       <WhoAmI class="justify-center sm:justify-start" />
-      <h1 class="text-3xl font-bold tracking-tight text-tui-text sm:text-4xl">Hey!</h1>
+      <h1 class="text-[clamp(1.5rem,4vh,2.25rem)] font-bold tracking-tight text-tui-text">Hey!</h1>
       <div class="prose prose-invert max-w-2xl text-lg leading-relaxed sm:text-xl prose-p:text-tui-text prose-strong:text-tui-cyan">
         <Intro />
       </div>

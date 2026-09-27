@@ -25,21 +25,21 @@ const { Content: Extended } = await render(aboutExtended);
   <main>
     <section
       id="about-cover"
-      class="relative flex min-h-[calc(100vh-5rem)] snap-start scroll-mt-20 items-center px-4 pb-16 pt-8 sm:px-8"
+      class="relative flex min-h-[calc(100vh-5rem)] snap-start scroll-mt-20 items-start px-4 pb-16 pt-8 sm:px-8"
     >
       <div class="w-full" transition:name="about-page" transition:animate={slide({ duration: '0.4s' })}>
         <TerminalPanel
           label="about"
-          class="w-full min-h-[80vh]"
-          bodyClass="flex flex-col items-center justify-center gap-8 text-center"
+          class="w-full min-h-[70vh]"
+          bodyClass="flex flex-col items-center justify-center gap-[clamp(1rem,3vh,2rem)] text-center"
         >
           <img
             src="https://github.com/M4elstr0m.png?size=600"
             alt="M4elstr0m"
-            class="h-56 w-56 rounded-full border border-tui-border object-cover sm:h-72 sm:w-72"
+            class="h-[clamp(7rem,20vh,15rem)] w-[clamp(7rem,20vh,15rem)] rounded-full border border-tui-border object-cover"
           />
           <WhoAmI class="justify-center" />
-          <h1 class="text-5xl font-bold tracking-tight text-tui-text sm:text-7xl">M4elstr0m</h1>
+          <h1 class="text-[clamp(1.75rem,7vh,4.5rem)] font-bold tracking-tight text-tui-text">M4elstr0m</h1>
         </TerminalPanel>
       </div>
       <ScrollHint target="#about-details" />
@@ -48,8 +48,12 @@ const { Content: Extended } = await render(aboutExtended);
       id="about-details"
       class="relative flex min-h-[calc(100vh-5rem)] snap-start scroll-mt-20 items-center px-4 py-12 sm:px-8"
     >
-      <TerminalPanel label="whoami" class="w-full min-h-[80vh]" bodyClass="flex flex-col gap-10 py-10 lg:flex-row lg:items-center">
-        <div class="flex-1 space-y-10">
+      <TerminalPanel
+        label="whoami"
+        class="w-full min-h-[80vh]"
+        bodyClass="flex flex-col gap-10 py-[clamp(1.5rem,4vh,2.5rem)] lg:flex-row lg:items-center"
+      >
+        <div class="flex-1 space-y-[clamp(1.25rem,3vh,2.5rem)]">
           <WhoAmI />
           <div class="prose prose-invert max-w-2xl text-lg leading-relaxed sm:text-xl prose-p:text-tui-text prose-strong:text-tui-cyan">
             <Intro />
