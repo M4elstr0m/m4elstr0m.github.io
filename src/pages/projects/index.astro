@@ -4,6 +4,7 @@ import { getCollection, getEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import TerminalPanel from '../../components/TerminalPanel.astro';
 import ProjectGrid from '../../components/ProjectGrid';
+import BackHint from '../../components/BackHint.astro';
 import { findIcon } from '../../lib/find-icon';
 import { categorizeTag, tagColorClasses } from '../../lib/categorize-tag';
 
@@ -37,6 +38,7 @@ const projects = entries
     transition:name="projects-page"
     transition:animate={slide({ duration: '0.4s' })}
   >
+    <BackHint target="/" />
     <TerminalPanel label="projects" class="w-full">
       <ProjectGrid client:load projects={projects} />
     </TerminalPanel>

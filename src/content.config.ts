@@ -44,6 +44,14 @@ const pages = defineCollection({
         }),
       )
       .optional(),
+    languages: z
+      .array(
+        z.object({
+          name: z.string(),
+          level: z.string(),
+        }),
+      )
+      .optional(),
   }),
 });
 

@@ -5,6 +5,7 @@ import Layout from '../../layouts/Layout.astro';
 import TerminalPanel from '../../components/TerminalPanel.astro';
 import Button from '../../components/Button.astro';
 import ProjectTag from '../../components/ProjectTag.astro';
+import LucideIcon from '../../components/LucideIcon.astro';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects');
@@ -43,6 +44,13 @@ const categories = {
 
 <Layout title={`M4elstr0m: ${title}`} description={summary}>
   <main class="mx-auto max-w-3xl px-4 py-12 sm:px-8">
+    <a
+      href="/projects"
+      class="mb-4 inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-tui-muted transition-colors hover:text-tui-gold"
+    >
+      <LucideIcon name="chevron-left" class="h-4 w-4" />
+      back to projects
+    </a>
     <TerminalPanel
       label={isPrivate ? 'private' : 'public'}
       labelColor={isPrivate ? 'red' : 'green'}

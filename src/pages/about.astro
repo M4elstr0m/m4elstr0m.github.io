@@ -8,11 +8,12 @@ import WhoAmI from '../components/WhoAmI.astro';
 import ScrollHint from '../components/ScrollHint.astro';
 import LucideIcon from '../components/LucideIcon.astro';
 import SocialLinks from '../components/SocialLinks.astro';
+import BackHint from '../components/BackHint.astro';
 
 const about = await getEntry('pages', 'about');
 if (!about) throw new Error('Missing data/pages/about.md');
 const { Content: Intro } = await render(about);
-const { interests, stack, tools } = about.data;
+const { interests, stack, tools, languages } = about.data;
 
 const aboutExtended = await getEntry('pages', 'about-extended');
 if (!aboutExtended) throw new Error('Missing data/pages/about-extended.md');
@@ -24,6 +25,7 @@ const { Content: Extended } = await render(aboutExtended);
   description="More about M4elstr0m, a security-minded developer working primarily in Go and Rust."
 >
   <main>
+    <BackHint target="/" />
     <section
       id="about-cover"
       class="relative flex min-h-[calc(100vh-5rem)] snap-start scroll-mt-20 items-start px-4 pb-16 pt-8 sm:px-8"
@@ -62,6 +64,30 @@ const { Content: Extended } = await render(aboutExtended);
           <div class="prose prose-invert max-w-2xl text-base leading-relaxed prose-p:text-tui-muted">
             <Extended />
           </div>
+          {
+            languages && languages.length > 0 && (
+              <div class="space-y-1 text-sm">
+                <p class="flex items-center gap-2 text-tui-muted">
+                  <span class="text-tui-green">$</span>
+                  <span>locale --list</span>
+                </p>
+                <p class="pl-4 text-tui-text">
+                  <span class="text-tui-text/60">[</span>
+                  {languages.map((lang, i) => (
+                    <Fragment>
+                      {i > 0 && <span class="text-tui-text/60">, </span>}
+                      <span class="text-tui-text/60">{'{'}</span>
+                      <span class="font-black">{lang.name}</span>
+                      <span class="text-tui-text/60">, </span>
+                      <span>{lang.level}</span>
+                      <span class="text-tui-text/60">{'}'}</span>
+                    </Fragment>
+                  ))}
+                  <span class="text-tui-text/60">]</span>
+                </p>
+              </div>
+            )
+          }
           <AboutBadges interests={interests} stack={stack} tools={tools} />
         </div>
         <SocialLinks />
