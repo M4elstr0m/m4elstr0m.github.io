@@ -16,6 +16,11 @@ body {
   background-size: 22px 22px;
 }
 
+[data-tag="rust"],
+[data-tag="go"] {
+  cursor: pointer;
+}
+
 .tui-external-icon {
   display: inline;
   margin-left: 0.3em;

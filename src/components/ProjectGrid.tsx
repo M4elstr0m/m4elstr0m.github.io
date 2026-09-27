@@ -142,6 +142,7 @@ export default function ProjectGrid({ projects }: Props) {
                 {project.stack.map((tech) => (
                   <li
                     key={tech.label}
+                    data-tag={tech.label.toLowerCase()}
                     className={`flex items-center gap-1.5 border border-tui-border px-2 py-0.5 text-xs uppercase tracking-wider transition-all duration-200 hover:-translate-y-0.5 ${tech.colorClass}`}
                   >
                     {tech.icon && (

@@ -37,6 +37,7 @@ const categories = {
         {
           stack.map((tech) => (
             <li
+              data-tag={tech.toLowerCase()}
               class:list={[
                 'flex items-center gap-1.5 border border-tui-border px-2 py-0.5 text-xs uppercase tracking-wider transition-all duration-200 hover:-translate-y-0.5',
                 tagColorClasses[categorizeTag(tech, categories)],
