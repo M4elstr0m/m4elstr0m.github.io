@@ -51,6 +51,14 @@ const { title, description } = Astro.props;
     }
   }
 
+  // Resizing a canvas's width/height resets its 2D context state (fillStyle,
+  // font) to defaults, so this must be re-applied every time the backing
+  // store is resized, not just once at setup.
+  function applyStormCanvasDefaults(ctx: CanvasRenderingContext2D) {
+    ctx.font = '11px "JetBrains Mono", monospace';
+    ctx.fillStyle = '#f5f5f5';
+  }
+
   function bindStormCanvas(storm: Storm) {
     const el = document.getElementById('ascii-storm');
     if (el instanceof HTMLCanvasElement && el !== storm.canvas) {
@@ -58,6 +66,7 @@ const { title, description } = Astro.props;
       storm.ctx = el.getContext('2d');
       el.width = window.innerWidth;
       el.height = window.innerHeight;
+      if (storm.ctx) applyStormCanvasDefaults(storm.ctx);
     }
   }
 
@@ -72,23 +81,32 @@ const { title, description } = Astro.props;
       storm.ready = true;
       const chars = '#$%&*+-/<>=~^:;.,_|01'.split('');
 
+      let panelEls: Element[] = [];
       let panelRects: DOMRect[] = [];
+      function refreshPanelEls() {
+        panelEls = Array.from(document.querySelectorAll('.bg-tui-panel'));
+        refreshPanelRects();
+      }
+      // Scroll/resize only need fresh positions, not a re-query of which
+      // elements are panels - querySelectorAll on every scroll tick during
+      // the JS-driven swipe animation was the actual cost, not the rects.
       function refreshPanelRects() {
-        panelRects = Array.from(document.querySelectorAll('.bg-tui-panel')).map((el) => el.getBoundingClientRect());
+        panelRects = panelEls.map((el) => el.getBoundingClientRect());
       }
       function isOverPanel(x: number, y: number) {
         return panelRects.some((rect) => x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom);
       }
-      refreshPanelRects();
+      refreshPanelEls();
       window.addEventListener('scroll', refreshPanelRects, { passive: true });
-      window.addEventListener('resize', refreshPanelRects);
-      document.addEventListener('astro:page-load', refreshPanelRects);
-      setInterval(refreshPanelRects, 500);
+      window.addEventListener('resize', refreshPanelEls);
+      document.addEventListener('astro:page-load', refreshPanelEls);
+      setInterval(refreshPanelEls, 500);
 
       window.addEventListener('resize', () => {
         if (storm.canvas) {
           storm.canvas.width = window.innerWidth;
           storm.canvas.height = window.innerHeight;
+          if (storm.ctx) applyStormCanvasDefaults(storm.ctx);
         }
       });
 
@@ -114,12 +132,10 @@ const { title, description } = Astro.props;
         if (canvas && ctx) {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           storm.particles = storm.particles.filter((p) => now - p.born < p.life);
-          ctx.font = '11px "JetBrains Mono", monospace';
           for (const p of storm.particles) {
             const age = (now - p.born) / p.life;
             p.y += p.vy;
             const dimmed = isOverPanel(p.x, p.y) ? 0.2 : 1;
-            ctx.fillStyle = '#f5f5f5';
             ctx.globalAlpha = (1 - age) * 0.9 * dimmed;
             ctx.fillText(p.char, p.x, p.y);
           }

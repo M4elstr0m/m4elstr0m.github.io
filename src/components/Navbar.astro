@@ -163,8 +163,20 @@ const isHomeActive = path === '/';
     contact: 'contact',
   };
 
+  let navLinkEls: HTMLElement[] = [];
+  let lastActiveNavKey: string | null = null;
+
+  function refreshNavLinkEls() {
+    navLinkEls = Array.from(document.querySelectorAll<HTMLElement>('[data-nav-link]'));
+    // DOM is fresh (new page swap) - force the next setActiveNav call to
+    // reapply even if it computes the same key as before the swap.
+    lastActiveNavKey = null;
+  }
+
   function setActiveNav(key: string) {
-    for (const el of document.querySelectorAll<HTMLElement>('[data-nav-link]')) {
+    if (key === lastActiveNavKey) return;
+    lastActiveNavKey = key;
+    for (const el of navLinkEls) {
       el.classList.toggle('is-active', el.dataset.navLink === key);
     }
   }
@@ -201,9 +213,11 @@ const isHomeActive = path === '/';
     }
   }
 
+  refreshNavLinkEls();
   bindNavbar();
   bindHomeNavTracking();
   document.addEventListener('astro:page-load', () => {
+    refreshNavLinkEls();
     bindNavbar();
     bindHomeNavTracking();
   });
