@@ -91,6 +91,10 @@ const { title, description } = Astro.props;
       // elements are panels - querySelectorAll on every scroll tick during
       // the JS-driven swipe animation was the actual cost, not the rects.
       function refreshPanelRects() {
+        // The carousel tween drives scroll itself and already knows where
+        // it's headed - skip the forced layout read on every one of its
+        // frames and resync once via the 'carousel-settled' listener below.
+        if (document.documentElement.dataset.carouselAnimating === 'true') return;
         panelRects = panelEls.map((el) => el.getBoundingClientRect());
       }
       function isOverPanel(x: number, y: number) {
@@ -100,6 +104,7 @@ const { title, description } = Astro.props;
       window.addEventListener('scroll', refreshPanelRects, { passive: true });
       window.addEventListener('resize', refreshPanelEls);
       document.addEventListener('astro:page-load', refreshPanelEls);
+      window.addEventListener('carousel-settled', refreshPanelRects);
       setInterval(refreshPanelEls, 500);
 
       window.addEventListener('resize', () => {
@@ -162,6 +167,9 @@ const { title, description } = Astro.props;
         continue;
       }
       if (url.origin === location.origin) continue;
+
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
 
       const wrapper = document.createElement('span');
       wrapper.innerHTML = EXTERNAL_LINK_SVG;
@@ -287,12 +295,25 @@ const { title, description } = Astro.props;
     const delta = targetY - startY;
     if (Math.abs(delta) < 1) return;
     const start = performance.now();
+    // Scroll listeners elsewhere (storm panel-dimming, navbar active-tab
+    // tracking) force a synchronous layout read on every scroll event via
+    // getBoundingClientRect. During this JS-driven tween that fires on every
+    // animation frame, competing with the scrollTo call itself for the same
+    // frame budget - which is exactly why this felt less smooth than the
+    // native, GPU-composited page-swipe transition. Suppress that work while
+    // the tween is running and do one batched sync once it settles instead.
+    document.documentElement.dataset.carouselAnimating = 'true';
     function step(now: number) {
       if (token !== carouselToken) return;
       const t = Math.min((now - start) / duration, 1);
       const eased = 1 - Math.pow(1 - t, 3);
       window.scrollTo({ top: startY + delta * eased, left: 0, behavior: 'instant' });
-      if (t < 1) requestAnimationFrame(step);
+      if (t < 1) {
+        requestAnimationFrame(step);
+      } else {
+        delete document.documentElement.dataset.carouselAnimating;
+        window.dispatchEvent(new Event('carousel-settled'));
+      }
     }
     requestAnimationFrame(step);
   }

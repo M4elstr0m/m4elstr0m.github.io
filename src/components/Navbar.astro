@@ -182,6 +182,10 @@ const isHomeActive = path === '/';
   }
 
   function updateHomeNavActive() {
+    // The carousel tween drives scroll itself and already knows the target
+    // section - skip the forced layout read on every one of its animation
+    // frames and resync once it settles instead (see 'carousel-settled').
+    if (document.documentElement.dataset.carouselAnimating === 'true') return;
     let best = 'about';
     let bestDist = Infinity;
     for (const id of Object.keys(HOME_SECTION_TO_NAV_KEY)) {
@@ -202,6 +206,7 @@ const isHomeActive = path === '/';
     if (location.pathname !== '/') {
       if (homeNavScrollBound) {
         window.removeEventListener('scroll', updateHomeNavActive);
+        window.removeEventListener('carousel-settled', updateHomeNavActive);
         homeNavScrollBound = false;
       }
       return;
@@ -210,6 +215,7 @@ const isHomeActive = path === '/';
     if (!homeNavScrollBound) {
       homeNavScrollBound = true;
       window.addEventListener('scroll', updateHomeNavActive, { passive: true });
+      window.addEventListener('carousel-settled', updateHomeNavActive);
     }
   }
 
