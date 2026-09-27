@@ -36,6 +36,14 @@ const pages = defineCollection({
     interests: z.array(z.string()).optional(),
     stack: z.array(z.string()).optional(),
     tools: z.array(z.string()).optional(),
+    socials: z
+      .array(
+        z.object({
+          platform: z.string(),
+          url: z.url(),
+        }),
+      )
+      .optional(),
   }),
 });
 

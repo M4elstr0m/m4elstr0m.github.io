@@ -7,6 +7,7 @@ import AboutBadges from '../components/AboutBadges.astro';
 import WhoAmI from '../components/WhoAmI.astro';
 import ScrollHint from '../components/ScrollHint.astro';
 import LucideIcon from '../components/LucideIcon.astro';
+import SocialLinks from '../components/SocialLinks.astro';
 
 const about = await getEntry('pages', 'about');
 if (!about) throw new Error('Missing data/pages/about.md');
@@ -33,6 +34,7 @@ const { Content: Extended } = await render(aboutExtended);
           class="w-full min-h-[70vh]"
           bodyClass="flex flex-col items-center justify-center gap-[clamp(1rem,3vh,2rem)] text-center"
         >
+          <SocialLinks />
           <img
             src="https://github.com/M4elstr0m.png?size=600"
             alt="M4elstr0m"

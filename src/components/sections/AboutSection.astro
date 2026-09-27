@@ -4,6 +4,7 @@ import TerminalPanel from '../TerminalPanel.astro';
 import Button from '../Button.astro';
 import AboutBadges from '../AboutBadges.astro';
 import WhoAmI from '../WhoAmI.astro';
+import SocialLinks from '../SocialLinks.astro';
 
 const about = await getEntry('pages', 'about');
 if (!about) throw new Error('Missing data/pages/about.md');
@@ -16,6 +17,7 @@ const { interests, stack, tools } = about.data;
   class="w-full min-h-[70vh]"
   bodyClass="flex flex-col justify-center gap-[clamp(1.5rem,4vh,2.5rem)] py-[clamp(1.5rem,4vh,2.5rem)]"
 >
+  <SocialLinks />
   <div class="flex flex-col items-center gap-6 sm:flex-row sm:items-center">
     <img
       src="https://github.com/M4elstr0m.png?size=500"

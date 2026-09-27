@@ -171,6 +171,11 @@ const { title, description } = Astro.props;
       link.target = '_blank';
       link.rel = 'noopener noreferrer';
 
+      // Icon-only links (e.g. social links) are already unambiguously
+      // external via their brand icon - a second tiny arrow icon crammed
+      // into the same small square just looks cluttered.
+      if (link.hasAttribute('data-no-external-icon')) continue;
+
       const wrapper = document.createElement('span');
       wrapper.innerHTML = EXTERNAL_LINK_SVG;
       const svg = wrapper.firstElementChild;
