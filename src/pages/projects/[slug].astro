@@ -4,9 +4,7 @@ import { Image } from 'astro:assets';
 import Layout from '../../layouts/Layout.astro';
 import TerminalPanel from '../../components/TerminalPanel.astro';
 import Button from '../../components/Button.astro';
-import Icon from '../../components/Icon.astro';
-import { findIcon } from '../../lib/find-icon';
-import { categorizeTag, tagColorClasses } from '../../lib/categorize-tag';
+import ProjectTag from '../../components/ProjectTag.astro';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects');
@@ -56,19 +54,7 @@ const categories = {
         <h1 class="text-3xl font-bold text-tui-text">{title}</h1>
         <p class="text-tui-muted">{summary}</p>
         <ul class="flex flex-wrap gap-2">
-          {
-            stack.map((tech) => (
-              <li
-                class:list={[
-                  'flex items-center gap-1.5 border border-tui-border px-2 py-0.5 text-xs uppercase tracking-wider transition-all duration-200 hover:-translate-y-0.5',
-                  tagColorClasses[categorizeTag(tech, categories)],
-                ]}
-              >
-                {findIcon(tech) && <Icon icon={findIcon(tech)!} class="h-3 w-3 shrink-0" />}
-                {tech}
-              </li>
-            ))
-          }
+          {stack.map((tech) => <ProjectTag tech={tech} categories={categories} />)}
         </ul>
         <div class="flex flex-wrap gap-3 pt-2">
           {repo && <Button href={repo}>source</Button>}

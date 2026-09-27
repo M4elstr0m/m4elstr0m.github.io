@@ -322,11 +322,18 @@ const { title, description } = Astro.props;
     goToCarouselIndex(target);
   }
 
+  function isPhoneViewport() {
+    return window.matchMedia('(pointer: coarse) and (max-width: 767px)').matches;
+  }
+
   function enableCarouselPaging() {
     // Generic: any page can opt in just by giving its snap sections the
     // .snap-start class inside <main> - no per-page id list to keep in sync.
     carouselSections = Array.from(document.querySelectorAll<HTMLElement>('main .snap-start'));
-    if (carouselSections.length < 2 || carouselAttached) return;
+    // Phones get native scroll-snap instead (see global.css) so a section
+    // taller than the viewport can be scrolled through normally rather than
+    // being force-fit into one wheel-tick-per-section jump.
+    if (carouselSections.length < 2 || carouselAttached || isPhoneViewport()) return;
     carouselAttached = true;
     carouselIndex = findCarouselIndex();
     previousSnapType = document.documentElement.style.scrollSnapType;
