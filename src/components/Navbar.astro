@@ -2,13 +2,14 @@
 import LucideIcon from './LucideIcon.astro';
 
 const links = [
-  { href: '/about', label: 'about', section: 'about' },
-  { href: '/projects', label: 'projects', section: 'projects' },
-  { href: '/#contact', label: 'contact', section: null },
+  { href: '/about', label: 'about', section: 'about', key: 'about' },
+  { href: '/projects', label: 'projects', section: 'projects', key: 'projects' },
+  { href: '/#contact', label: 'contact', section: null, key: 'contact' },
 ];
 
 const path = Astro.url.pathname;
-const isActive = (href: string) => href !== '/#contact' && (path === href || path.startsWith(`${href}/`));
+const isRouteActive = (href: string) => href !== '/#contact' && (path === href || path.startsWith(`${href}/`));
+const isHomeActive = path === '/';
 ---
 
 <nav
@@ -21,7 +22,8 @@ const isActive = (href: string) => href !== '/#contact' && (path === href || pat
       <a
         href="/"
         aria-label="Home"
-        class="flex h-full items-center px-3 text-tui-muted transition-colors hover:bg-tui-gold hover:text-tui-panel sm:px-4"
+        data-nav-link="home"
+        class:list={['tui-nav-home flex h-full items-center px-3 transition-colors sm:px-4', isHomeActive && 'is-active']}
       >
         <LucideIcon name="house" class="h-4 w-4" />
       </a>
@@ -32,11 +34,10 @@ const isActive = (href: string) => href !== '/#contact' && (path === href || pat
           <a
             href={link.href}
             data-carousel-section={link.section}
+            data-nav-link={link.key}
             class:list={[
-              'flex h-full items-center px-3 py-2.5 transition-colors sm:px-5',
-              isActive(link.href)
-                ? 'bg-tui-gold font-bold text-tui-panel'
-                : 'text-tui-text hover:bg-tui-gold hover:text-tui-panel',
+              'tui-nav-link flex h-full items-center px-3 py-2.5 transition-colors sm:px-5',
+              isRouteActive(link.href) && 'is-active',
             ]}
           >
             {link.label}
@@ -46,6 +47,29 @@ const isActive = (href: string) => href !== '/#contact' && (path === href || pat
     }
   </ul>
 </nav>
+
+<style>
+  .tui-nav-home {
+    color: var(--color-tui-muted);
+  }
+
+  .tui-nav-link {
+    color: var(--color-tui-text);
+  }
+
+  .tui-nav-home:hover,
+  .tui-nav-link:hover {
+    background-color: var(--color-tui-gold);
+    color: var(--color-tui-panel);
+  }
+
+  .tui-nav-home.is-active,
+  .tui-nav-link.is-active {
+    background-color: var(--color-tui-gold);
+    color: var(--color-tui-panel);
+    font-weight: 700;
+  }
+</style>
 
 <script>
   import { navigate } from 'astro:transitions/client';
@@ -133,6 +157,54 @@ const isActive = (href: string) => href !== '/#contact' && (path === href || pat
     }
   }
 
+  const HOME_SECTION_TO_NAV_KEY: Record<string, string> = {
+    about: 'home',
+    projects: 'home',
+    contact: 'contact',
+  };
+
+  function setActiveNav(key: string) {
+    for (const el of document.querySelectorAll<HTMLElement>('[data-nav-link]')) {
+      el.classList.toggle('is-active', el.dataset.navLink === key);
+    }
+  }
+
+  function updateHomeNavActive() {
+    let best = 'about';
+    let bestDist = Infinity;
+    for (const id of Object.keys(HOME_SECTION_TO_NAV_KEY)) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      const dist = Math.abs(el.getBoundingClientRect().top - NAVBAR_OFFSET);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = id;
+      }
+    }
+    setActiveNav(HOME_SECTION_TO_NAV_KEY[best]);
+  }
+
+  let homeNavScrollBound = false;
+
+  function bindHomeNavTracking() {
+    if (location.pathname !== '/') {
+      if (homeNavScrollBound) {
+        window.removeEventListener('scroll', updateHomeNavActive);
+        homeNavScrollBound = false;
+      }
+      return;
+    }
+    updateHomeNavActive();
+    if (!homeNavScrollBound) {
+      homeNavScrollBound = true;
+      window.addEventListener('scroll', updateHomeNavActive, { passive: true });
+    }
+  }
+
   bindNavbar();
-  document.addEventListener('astro:page-load', bindNavbar);
+  bindHomeNavTracking();
+  document.addEventListener('astro:page-load', () => {
+    bindNavbar();
+    bindHomeNavTracking();
+  });
 </script>
