@@ -12,7 +12,7 @@ interface Props {
 const { tech } = Astro.props;
 const icon = findIcon(tech);
 
-const tagsEntry = await getEntry('pages', 'tags');
+const tagsEntry = await getEntry('taxonomy', 'tags');
 const colorMap = Object.fromEntries(
   (tagsEntry?.data.tags ?? []).map((t) => [t.tag.toLowerCase(), t.color]),
 );

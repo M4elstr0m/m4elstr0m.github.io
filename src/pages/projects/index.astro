@@ -17,7 +17,7 @@ import { getLocalizedTagMaps, getTagLabel } from '../../lib/tag-i18n';
 const locale = Astro.currentLocale ?? 'en';
 const t = useTranslations(locale);
 
-const tagsEntry = await getEntry('pages', 'tags');
+const tagsEntry = await getEntry('taxonomy', 'tags');
 const tagColorMap = Object.fromEntries(
   (tagsEntry?.data.tags ?? []).map((t) => [t.tag.toLowerCase(), t.color]),
 );

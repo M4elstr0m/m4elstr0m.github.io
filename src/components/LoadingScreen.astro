@@ -1,0 +1,34 @@
+---
+import { useTranslations } from '../i18n/utils';
+
+const t = useTranslations(Astro.currentLocale);
+---
+
+<div
+  id="loading-screen"
+  transition:persist
+  class="pointer-events-none fixed inset-0 z-[200] flex items-center justify-center bg-tui-bg"
+>
+  <p class="flex items-center gap-2 font-mono text-sm uppercase tracking-[0.2em] text-tui-green">
+    <span>$</span>
+    <span>{t('loading.boot')}</span>
+    <span class="tui-cursor inline-block h-[1em] w-[0.55ch] bg-tui-gold align-middle"></span>
+  </p>
+</div>
+
+<script>
+  function hideLoadingScreen() {
+    const el = document.getElementById('loading-screen');
+    if (!el || el.dataset.hidden === 'true') return;
+    el.dataset.hidden = 'true';
+    el.style.transition = 'opacity 300ms ease-out';
+    el.style.opacity = '0';
+  }
+
+  if (document.readyState === 'complete') {
+    hideLoadingScreen();
+  } else {
+    window.addEventListener('load', hideLoadingScreen, { once: true });
+  }
+  document.addEventListener('astro:page-load', hideLoadingScreen);
+</script>

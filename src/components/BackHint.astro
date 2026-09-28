@@ -15,7 +15,7 @@ const displayLabel = label ?? t('hint.home');
 <a
   href={target}
   data-back-hint
-  class="fixed inset-y-0 left-4 z-10 hidden flex-col items-center justify-center gap-1 text-tui-muted transition-colors hover:text-tui-gold sm:flex"
+  class="fixed left-4 top-1/2 z-10 hidden -translate-y-1/2 flex-col items-center justify-center gap-1 p-3 text-tui-muted transition-colors hover:text-tui-gold sm:flex"
 >
   <LucideIcon name="chevron-left" class="h-8 w-8 animate-pulse" />
   <span class="text-[10px] uppercase tracking-[0.2em]">{displayLabel}</span>
@@ -23,32 +23,9 @@ const displayLabel = label ?? t('hint.home');
 
 <script>
   import { navigate } from 'astro:transitions/client';
+  import { NAVBAR_OFFSET, animatedScrollTo } from '../lib/client/scroll';
 
-  const NAVBAR_OFFSET = 80;
   const HOP_DURATION = 200;
-
-  function animatedScrollTo(targetY: number, duration: number): Promise<void> {
-    return new Promise((resolve) => {
-      const startY = window.scrollY;
-      const delta = targetY - startY;
-      if (Math.abs(delta) < 1) {
-        resolve();
-        return;
-      }
-      const start = performance.now();
-      function step(now: number) {
-        const t = Math.min((now - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - t, 3);
-        window.scrollTo({ top: startY + delta * eased, left: 0, behavior: 'instant' });
-        if (t < 1) {
-          requestAnimationFrame(step);
-        } else {
-          resolve();
-        }
-      }
-      requestAnimationFrame(step);
-    });
-  }
 
   function bindBackHints() {
     for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-back-hint]')) {

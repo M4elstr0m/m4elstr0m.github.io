@@ -1,15 +1,14 @@
 ---
 import { getRelativeLocaleUrl } from 'astro:i18n';
 import LucideIcon from './LucideIcon.astro';
+import LanguageSwitcher from './LanguageSwitcher.astro';
 import { useTranslations } from '../i18n/utils';
-import { stripLocalePrefix } from '../lib/locale-path';
 
 const locale = Astro.currentLocale ?? 'en';
 const t = useTranslations(locale);
 
 const homeHref = getRelativeLocaleUrl(locale, '/');
 const contactHref = `${homeHref}#contact`;
-const currentPath = stripLocalePrefix(Astro.url.pathname);
 
 const links = [
   { href: getRelativeLocaleUrl(locale, '/about'), label: t('nav.about'), section: 'about', key: 'about' },
@@ -55,42 +54,8 @@ const isHomeActive = path === homeHref;
         </li>
       ))
     }
-    <li class="relative" data-lang-dropdown>
-      <button
-        type="button"
-        data-lang-trigger
-        aria-haspopup="true"
-        aria-expanded="false"
-        aria-label={t('nav.language')}
-        class="tui-nav-link flex h-full items-center px-3 transition-colors sm:px-4"
-      >
-        <LucideIcon name="languages" class="h-4 w-4" />
-      </button>
-      <ul
-        data-lang-menu
-        class="absolute right-0 top-[calc(100%+0.5rem)] z-50 hidden min-w-[8rem] flex-col border border-tui-border bg-tui-panel py-1 shadow-lg"
-      >
-        <li>
-          <a
-            href={getRelativeLocaleUrl('en', currentPath)}
-            data-locale-switch="en"
-            class:list={['flex items-center justify-between gap-3 px-3 py-2 transition-colors', locale === 'en' ? 'font-bold text-tui-gold' : 'text-tui-muted hover:bg-tui-gold hover:text-tui-panel']}
-          >
-            English
-            {locale === 'en' && <LucideIcon name="check" class="h-3 w-3" />}
-          </a>
-        </li>
-        <li>
-          <a
-            href={getRelativeLocaleUrl('fr', currentPath)}
-            data-locale-switch="fr"
-            class:list={['flex items-center justify-between gap-3 px-3 py-2 transition-colors', locale === 'fr' ? 'font-bold text-tui-gold' : 'text-tui-muted hover:bg-tui-gold hover:text-tui-panel']}
-          >
-            Français
-            {locale === 'fr' && <LucideIcon name="check" class="h-3 w-3" />}
-          </a>
-        </li>
-      </ul>
+    <li>
+      <LanguageSwitcher />
     </li>
   </ul>
 </nav>
@@ -121,38 +86,9 @@ const isHomeActive = path === homeHref;
 <script>
   import { navigate } from 'astro:transitions/client';
   import { isHomePath } from '../lib/locale-path';
+  import { NAVBAR_OFFSET, isSectionAligned, animatedScrollTo } from '../lib/client/scroll';
 
-  const NAVBAR_OFFSET = 80;
   const BASE_SWIPE_MS = 400;
-  const LOCALE_STORAGE_KEY = 'preferred-locale';
-
-  function isSectionAligned(id: string) {
-    const el = document.getElementById(id);
-    return el ? Math.abs(el.getBoundingClientRect().top - NAVBAR_OFFSET) < 10 : false;
-  }
-
-  function animatedScrollTo(targetY: number, duration: number): Promise<void> {
-    return new Promise((resolve) => {
-      const startY = window.scrollY;
-      const delta = targetY - startY;
-      if (Math.abs(delta) < 1) {
-        resolve();
-        return;
-      }
-      const start = performance.now();
-      function step(now: number) {
-        const t = Math.min((now - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - t, 3);
-        window.scrollTo({ top: startY + delta * eased, left: 0, behavior: 'instant' });
-        if (t < 1) {
-          requestAnimationFrame(step);
-        } else {
-          resolve();
-        }
-      }
-      requestAnimationFrame(step);
-    });
-  }
 
   function bindNavbar() {
     const homeLink = document.querySelector<HTMLAnchorElement>('[data-nav-link="home"]');
@@ -162,33 +98,6 @@ const isHomeActive = path === homeHref;
         if (isHomePath(location.pathname) && isSectionAligned('about')) {
           event.preventDefault();
         }
-      });
-    }
-
-    for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-locale-switch]')) {
-      if (link.dataset.bound) continue;
-      link.dataset.bound = 'true';
-      link.addEventListener('click', () => {
-        const target = link.dataset.localeSwitch;
-        if (!target) return;
-        try {
-          localStorage.setItem(LOCALE_STORAGE_KEY, target);
-        } catch {
-          /* ignore */
-        }
-      });
-    }
-
-    const langWrapper = document.querySelector<HTMLElement>('[data-lang-dropdown]');
-    const langTrigger = langWrapper?.querySelector<HTMLButtonElement>('[data-lang-trigger]');
-    const langMenu = langWrapper?.querySelector<HTMLElement>('[data-lang-menu]');
-    if (langWrapper && langTrigger && langMenu && !langTrigger.dataset.bound) {
-      langTrigger.dataset.bound = 'true';
-      langTrigger.addEventListener('click', (event) => {
-        event.stopPropagation();
-        const isOpen = !langMenu.classList.contains('hidden');
-        langMenu.classList.toggle('hidden', isOpen);
-        langTrigger.setAttribute('aria-expanded', String(!isOpen));
       });
     }
 
@@ -289,21 +198,6 @@ const isHomeActive = path === homeHref;
       window.addEventListener('carousel-settled', updateHomeNavActive);
     }
   }
-
-  function closeLangMenu() {
-    document.querySelector('[data-lang-menu]')?.classList.add('hidden');
-    document
-      .querySelector('[data-lang-trigger]')
-      ?.setAttribute('aria-expanded', 'false');
-  }
-
-  document.addEventListener('click', (event) => {
-    const wrapper = document.querySelector('[data-lang-dropdown]');
-    if (wrapper && !wrapper.contains(event.target as Node)) closeLangMenu();
-  });
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') closeLangMenu();
-  });
 
   refreshNavLinkEls();
   bindNavbar();

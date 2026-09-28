@@ -40,10 +40,12 @@ const fr = ui.fr;
 />
 
 <script>
+  import { LOCALE_STORAGE_KEY } from '../lib/locale-path';
+
   function applyNotFoundLocale() {
     let preferred: string | null = null;
     try {
-      preferred = localStorage.getItem('preferred-locale');
+      preferred = localStorage.getItem(LOCALE_STORAGE_KEY);
     } catch {
       preferred = null;
     }
