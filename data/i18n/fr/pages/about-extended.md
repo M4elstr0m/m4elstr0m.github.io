@@ -1,0 +1,1 @@
+La plupart de ce que je développe commence avec un outil en ligne de commande ou un petit daemon avant d'avoir une interface. Mon objectif principal n'est pas de faire quelque chose de joli, mais quelque chose d'efficace.

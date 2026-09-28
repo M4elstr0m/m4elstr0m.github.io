@@ -1,6 +1,8 @@
 ---
 import SkillBadge from './SkillBadge.astro';
 import { findIcon } from '../lib/find-icon';
+import { useTranslations } from '../i18n/utils';
+import { getLocalizedTagMaps, getTagLabel } from '../lib/tag-i18n';
 
 interface Props {
   interests?: string[];
@@ -9,17 +11,20 @@ interface Props {
 }
 
 const { interests = [], stack = [], tools = [] } = Astro.props;
+const locale = Astro.currentLocale ?? 'en';
+const t = useTranslations(locale);
+const { labelMap } = await getLocalizedTagMaps(locale);
 ---
 
 {
   interests.length > 0 && (
     <div class="space-y-3">
       <h2 class="text-sm uppercase tracking-[0.25em] text-tui-muted">
-        <span class="text-tui-green">▪</span> interests
+        <span class="text-tui-green">▪</span> {t('about.badgesInterests')}
       </h2>
       <div class="flex flex-wrap gap-3">
         {interests.map((interest) => (
-          <SkillBadge label={interest} color="green" />
+          <SkillBadge tag={interest} label={getTagLabel(interest, labelMap)} color="green" />
         ))}
       </div>
     </div>
@@ -30,11 +35,11 @@ const { interests = [], stack = [], tools = [] } = Astro.props;
   stack.length > 0 && (
     <div class="space-y-3">
       <h2 class="text-sm uppercase tracking-[0.25em] text-tui-muted">
-        <span class="text-tui-cyan">▪</span> stack
+        <span class="text-tui-cyan">▪</span> {t('about.badgesStack')}
       </h2>
       <div class="flex flex-wrap gap-3">
         {stack.map((tech) => (
-          <SkillBadge label={tech} icon={findIcon(tech)} color="cyan" />
+          <SkillBadge tag={tech} label={getTagLabel(tech, labelMap)} icon={findIcon(tech)} color="cyan" />
         ))}
       </div>
     </div>
@@ -45,11 +50,11 @@ const { interests = [], stack = [], tools = [] } = Astro.props;
   tools.length > 0 && (
     <div class="space-y-3">
       <h2 class="text-sm uppercase tracking-[0.25em] text-tui-muted">
-        <span class="text-tui-orange">▪</span> tools
+        <span class="text-tui-orange">▪</span> {t('about.badgesTools')}
       </h2>
       <div class="flex flex-wrap gap-3">
         {tools.map((tool) => (
-          <SkillBadge label={tool} icon={findIcon(tool)} color="orange" />
+          <SkillBadge tag={tool} label={getTagLabel(tool, labelMap)} icon={findIcon(tool)} color="orange" />
         ))}
       </div>
     </div>

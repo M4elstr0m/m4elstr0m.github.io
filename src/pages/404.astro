@@ -2,6 +2,9 @@
 import Layout from '../layouts/Layout.astro';
 import TerminalPanel from '../components/TerminalPanel.astro';
 import Button from '../components/Button.astro';
+import { ui } from '../i18n/ui';
+
+const fr = ui.fr;
 ---
 
 <Layout title="M4elstr0m: 404" description="Page not found.">
@@ -18,12 +21,58 @@ import Button from '../components/Button.astro';
       </p>
       <p class="text-sm text-tui-red">cat: ./requested-page: No such file or directory</p>
       <h1 class="text-6xl font-bold tracking-tight text-tui-text">404</h1>
-      <p class="text-tui-muted">This page doesn't exist, or it was moved.</p>
+      <p class="text-tui-muted" data-i18n-404="heading">This page doesn't exist, or it was moved.</p>
       <div class="flex flex-wrap justify-center gap-3 pt-2">
-        <Button href="/">home</Button>
-        <Button href="/about">about</Button>
-        <Button href="/projects">projects</Button>
+        <Button href="/" data-i18n-404="home">home</Button>
       </div>
     </TerminalPanel>
   </main>
 </Layout>
+
+<script
+  type="application/json"
+  id="notfound-fr"
+  set:html={JSON.stringify({
+    heading: fr['404.heading'],
+    home: fr['404.home'],
+    hrefs: { home: '/fr/' },
+  })}
+/>
+
+<script>
+  function applyNotFoundLocale() {
+    let preferred: string | null = null;
+    try {
+      preferred = localStorage.getItem('preferred-locale');
+    } catch {
+      preferred = null;
+    }
+
+    if (preferred !== 'fr') return;
+
+    const raw = document.getElementById('notfound-fr')?.textContent;
+    if (!raw) return;
+    try {
+      const fr = JSON.parse(raw) as {
+        heading: string;
+        home: string;
+        hrefs: Record<string, string>;
+      };
+      document.documentElement.lang = 'fr';
+      const heading = document.querySelector('[data-i18n-404="heading"]');
+      if (heading) heading.textContent = fr.heading;
+      const link = document.querySelector<HTMLAnchorElement>(
+        '[data-i18n-404="home"]',
+      );
+      if (link) {
+        link.textContent = fr.home;
+        link.href = fr.hrefs.home;
+      }
+    } catch {
+      /* ignore malformed data */
+    }
+  }
+
+  applyNotFoundLocale();
+  document.addEventListener('astro:page-load', applyNotFoundLocale);
+</script>

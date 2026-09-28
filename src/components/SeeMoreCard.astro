@@ -1,11 +1,16 @@
 ---
+import { getRelativeLocaleUrl } from 'astro:i18n';
 import TerminalPanel from './TerminalPanel.astro';
 import LucideIcon from './LucideIcon.astro';
+import { useTranslations } from '../i18n/utils';
+
+const locale = Astro.currentLocale ?? 'en';
+const t = useTranslations(locale);
 ---
 
-<a href="/projects" class="group flex h-full flex-col">
+<a href={getRelativeLocaleUrl(locale, '/projects')} class="group flex h-full flex-col">
   <TerminalPanel
-    label="more"
+    label={t('panel.more')}
     labelColor="cyan"
     class="flex-1 transition-colors group-hover:border-tui-cyan"
     bodyClass="flex flex-col p-0"
@@ -17,8 +22,8 @@ import LucideIcon from './LucideIcon.astro';
       />
     </div>
     <div class="flex flex-1 flex-col items-center justify-center gap-2 p-5 text-center">
-      <h3 class="text-lg font-semibold text-tui-text transition-colors group-hover:text-tui-cyan">See more</h3>
-      <p class="text-sm text-tui-muted">Browse the full list of projects</p>
+      <h3 class="text-lg font-semibold text-tui-text transition-colors group-hover:text-tui-cyan">{t('seeMore.title')}</h3>
+      <p class="text-sm text-tui-muted">{t('seeMore.subtitle')}</p>
     </div>
   </TerminalPanel>
 </a>

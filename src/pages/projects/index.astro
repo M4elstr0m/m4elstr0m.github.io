@@ -1,6 +1,7 @@
 ---
 import { slide } from 'astro:transitions';
 import { getCollection, getEntry } from 'astro:content';
+import { getRelativeLocaleUrl } from 'astro:i18n';
 import Layout from '../../layouts/Layout.astro';
 import TerminalPanel from '../../components/TerminalPanel.astro';
 import ProjectGrid from '../../components/ProjectGrid';
@@ -8,41 +9,62 @@ import BackHint from '../../components/BackHint.astro';
 import { findIcon } from '../../lib/find-icon';
 import { getTagColor, tagColorClasses } from '../../lib/categorize-tag';
 import { sortProjectsByRank } from '../../lib/sort-projects';
+import { projectCoverPlaceholderDataUri } from '../../lib/project-cover-placeholder';
+import { useTranslations } from '../../i18n/utils';
+import { localizedProjectSummary } from '../../lib/i18n-content';
+import { getLocalizedTagMaps, getTagLabel } from '../../lib/tag-i18n';
+
+const locale = Astro.currentLocale ?? 'en';
+const t = useTranslations(locale);
 
 const tagsEntry = await getEntry('pages', 'tags');
 const tagColorMap = Object.fromEntries(
   (tagsEntry?.data.tags ?? []).map((t) => [t.tag.toLowerCase(), t.color]),
 );
+const { labelMap: tagLabelMap } = await getLocalizedTagMaps(locale);
 
 const entries = await getCollection('projects');
 const sorted = await sortProjectsByRank(entries);
-const projects = sorted.map((entry) => ({
-  slug: entry.id,
-  title: entry.data.title,
-  summary: entry.data.summary,
-  stack: entry.data.stack.map((tech) => ({
-    label: tech,
-    icon: findIcon(tech),
-    colorClass: tagColorClasses[getTagColor(tech, tagColorMap)],
+const projects = await Promise.all(
+  sorted.map(async (entry) => ({
+    slug: entry.id,
+    title: entry.data.title,
+    summary: await localizedProjectSummary(entry, locale),
+    stack: entry.data.stack.map((tech) => ({
+      key: tech.toLowerCase(),
+      label: getTagLabel(tech, tagLabelMap),
+      icon: findIcon(tech),
+      colorClass: tagColorClasses[getTagColor(tech, tagColorMap)],
+    })),
+    cover: entry.data.coverGif ?? entry.data.cover?.src ?? projectCoverPlaceholderDataUri(entry.data.title, locale),
+    projectIcon: entry.data.icon ?? null,
+    private: entry.data.private,
+    stars: entry.stars,
+    startYear: entry.data.startYear,
+    endYear: entry.data.endYear ?? null,
   })),
-  cover: entry.data.coverGif ?? entry.data.cover.src,
-  projectIcon: entry.data.icon ?? null,
-  private: entry.data.private,
-  stars: entry.stars,
-  startYear: entry.data.startYear,
-  endYear: entry.data.endYear ?? null,
-}));
+);
+
+const projectsBasePath = getRelativeLocaleUrl(locale, '/projects').replace(/\/$/, '');
+const gridStrings = {
+  searchPlaceholder: t('projects.searchPlaceholder'),
+  filterAll: t('projects.filterAll'),
+  noMatches: t('projects.noMatches'),
+  private: t('project.private'),
+  public: t('project.public'),
+  now: t('project.now'),
+};
 ---
 
-<Layout title="M4elstr0m: Projects" description="Full list of projects by M4elstr0m, spanning Go, Rust, OSINT, and offensive security tooling.">
+<Layout title={t('meta.projects.title')} description={t('meta.projects.description')}>
   <main
     class="px-4 py-12 sm:px-8"
     transition:name="projects-page"
     transition:animate={slide({ duration: '0.4s' })}
   >
-    <BackHint target="/" />
-    <TerminalPanel label="projects" class="w-full">
-      <ProjectGrid client:load projects={projects} />
+    <BackHint target={getRelativeLocaleUrl(locale, '/')} />
+    <TerminalPanel label={t('panel.projects')} class="w-full">
+      <ProjectGrid client:load projects={projects} basePath={projectsBasePath} strings={gridStrings} />
     </TerminalPanel>
   </main>
 </Layout>

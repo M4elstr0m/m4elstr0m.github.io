@@ -12,7 +12,7 @@ startYear: 2026
 rank: 2
 ---
 
-**gophoner** checks a single phone number against a set of individual modules concurrently, so checking against several services takes about as long as the slowest one, not the sum of them all. It ships both as a scriptable CLI (`gophoner check`) and a guided terminal UI (`gophoner interactive`), respectively built with Cobra and Bubble Tea.
+**gophoner** checks a single phone number against a set of individual modules concurrently, so checking against several services takes about as long as the slowest one, not the sum of them all. It ships both as a scriptable CLI (`gophoner check`) and a guided terminal UI (`gophoner interactive`), respectively built with [Cobra](https://cobra.dev/) and [Bubble Tea](https://github.com/charmbracelet/bubbletea).
 
 It is a spiritual successor to [ignorant by Megadose](https://github.com/Megadose/ignorant/), which was one of the only **free and open-source** tools to do a similar job.
 

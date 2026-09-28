@@ -1,16 +1,21 @@
 ---
 import { slide } from "astro:transitions";
+import { getRelativeLocaleUrl } from "astro:i18n";
 import Layout from "../layouts/Layout.astro";
 import AboutSection from "../components/sections/AboutSection.astro";
 import ProjectsPreviewSection from "../components/sections/ProjectsPreviewSection.astro";
 import ContactSection from "../components/sections/ContactSection.astro";
 import ScrollHint from "../components/ScrollHint.astro";
 import SwipeHint from "../components/SwipeHint.astro";
+import { useTranslations } from "../i18n/utils";
+
+const locale = Astro.currentLocale ?? "en";
+const t = useTranslations(locale);
 ---
 
 <Layout
-  title="M4elstr0m"
-  description="Portfolio of M4elstr0m, a security-minded developer working primarily in Go and Rust, focused on OSINT and offensive security tooling."
+  title={t("meta.home.title")}
+  description={t("meta.home.description")}
 >
   <main>
     <section
@@ -25,7 +30,7 @@ import SwipeHint from "../components/SwipeHint.astro";
         >
           <AboutSection />
         </div>
-        <SwipeHint target="/about" />
+        <SwipeHint target={getRelativeLocaleUrl(locale, "/about")} />
       </div>
       <ScrollHint target="#projects" />
     </section>
@@ -40,7 +45,7 @@ import SwipeHint from "../components/SwipeHint.astro";
       >
         <div class="relative w-full">
           <ProjectsPreviewSection />
-          <SwipeHint target="/projects" />
+          <SwipeHint target={getRelativeLocaleUrl(locale, "/projects")} />
         </div>
       </div>
       <ScrollHint target="#contact" />

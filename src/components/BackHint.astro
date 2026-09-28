@@ -1,12 +1,15 @@
 ---
 import LucideIcon from './LucideIcon.astro';
+import { useTranslations } from '../i18n/utils';
 
 interface Props {
   target: string;
   label?: string;
 }
 
-const { target, label = 'home' } = Astro.props;
+const { target, label } = Astro.props;
+const t = useTranslations(Astro.currentLocale);
+const displayLabel = label ?? t('hint.home');
 ---
 
 <a
@@ -15,7 +18,7 @@ const { target, label = 'home' } = Astro.props;
   class="fixed inset-y-0 left-4 z-10 hidden flex-col items-center justify-center gap-1 text-tui-muted transition-colors hover:text-tui-gold sm:flex"
 >
   <LucideIcon name="chevron-left" class="h-8 w-8 animate-pulse" />
-  <span class="text-[10px] uppercase tracking-[0.2em]">{label}</span>
+  <span class="text-[10px] uppercase tracking-[0.2em]">{displayLabel}</span>
 </a>
 
 <script>

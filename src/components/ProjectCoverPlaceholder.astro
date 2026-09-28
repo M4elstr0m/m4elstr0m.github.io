@@ -1,0 +1,13 @@
+---
+import { renderProjectCoverPlaceholderSvg } from '../lib/project-cover-placeholder';
+
+interface Props {
+  title: string;
+  class?: string;
+}
+
+const { title, class: className } = Astro.props;
+const svg = renderProjectCoverPlaceholderSvg(title, Astro.currentLocale).replace('<svg ', `<svg class="${className ?? ''}" `);
+---
+
+<Fragment set:html={svg} />

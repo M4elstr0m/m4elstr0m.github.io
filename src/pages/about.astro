@@ -1,6 +1,6 @@
 ---
 import { slide } from "astro:transitions";
-import { getEntry, render } from "astro:content";
+import { getRelativeLocaleUrl } from "astro:i18n";
 import Layout from "../layouts/Layout.astro";
 import TerminalPanel from "../components/TerminalPanel.astro";
 import AboutBadges from "../components/AboutBadges.astro";
@@ -10,29 +10,30 @@ import LucideIcon from "../components/LucideIcon.astro";
 import SocialLinks from "../components/SocialLinks.astro";
 import BackHint from "../components/BackHint.astro";
 import RedactedLine from "../components/RedactedLine.astro";
+import { useTranslations } from "../i18n/utils";
+import { renderLocalizedPage } from "../lib/i18n-content";
+
+const locale = Astro.currentLocale ?? "en";
+const t = useTranslations(locale);
 
 const CLASSIFIED_LINES = [
-  "THE BREACH IS HUMAN",
-  "THE LEAK IS HUMAN",
-  "THE HACK IS HUMAN",
+  t("about.classifiedBreach"),
+  t("about.classifiedLeak"),
+  t("about.classifiedHack"),
 ];
 
-const about = await getEntry("pages", "about");
-if (!about) throw new Error("Missing data/pages/about.md");
-const { Content: Intro } = await render(about);
-const { interests, stack, tools, languages } = about.data;
+const { data: aboutData, Content: Intro } = await renderLocalizedPage("about", locale);
+const { interests, stack, tools, languages } = aboutData;
 
-const aboutExtended = await getEntry("pages", "about-extended");
-if (!aboutExtended) throw new Error("Missing data/pages/about-extended.md");
-const { Content: Extended } = await render(aboutExtended);
+const { Content: Extended } = await renderLocalizedPage("about-extended", locale);
 ---
 
 <Layout
-  title="M4elstr0m: About"
-  description="More about M4elstr0m, a security-minded developer working primarily in Go and Rust."
+  title={t("meta.about.title")}
+  description={t("meta.about.description")}
 >
   <main>
-    <BackHint target="/" />
+    <BackHint target={getRelativeLocaleUrl(locale, "/")} />
     <section
       id="about-cover"
       class="relative flex min-h-[calc(100vh-5rem)] snap-start scroll-mt-20 items-start px-4 pb-16 pt-8 sm:px-8"
@@ -43,7 +44,7 @@ const { Content: Extended } = await render(aboutExtended);
         transition:animate={slide({ duration: "0.4s" })}
       >
         <TerminalPanel
-          label="about"
+          label={t("panel.about")}
           class="w-full min-h-[70vh]"
           bodyClass="flex flex-col items-center justify-center gap-[clamp(1rem,3vh,2rem)] text-center"
         >
@@ -88,7 +89,7 @@ const { Content: Extended } = await render(aboutExtended);
               <div class="space-y-1 text-sm">
                 <p class="flex items-center gap-2 text-tui-muted">
                   <span class="text-tui-green">$</span>
-                  <span>locale --list</span>
+                  <span>{t("about.localeList")}</span>
                 </p>
                 <p class="pl-4 text-tui-text">
                   <span class="text-tui-text/60">[</span>
@@ -113,7 +114,7 @@ const { Content: Extended } = await render(aboutExtended);
         <div class="hidden shrink-0 lg:mr-4 lg:flex lg:h-96 lg:w-xl">
           <img
             src="/ferris-ascii.svg"
-            alt="ASCII art of Ferris, the Rust mascot"
+            alt={t("about.ferrisAlt")}
             class="h-full w-full object-contain"
           />
         </div>
@@ -125,7 +126,7 @@ const { Content: Extended } = await render(aboutExtended);
       class="relative flex min-h-[calc(100vh-5rem)] snap-start scroll-mt-20 items-center px-4 py-12 sm:px-8"
     >
       <TerminalPanel
-        label="classified"
+        label={t("panel.classified")}
         labelColor="red"
         class="w-full min-h-[70vh]"
         bodyClass="flex flex-col items-center justify-center gap-8 text-center"
@@ -138,7 +139,7 @@ const { Content: Extended } = await render(aboutExtended);
           <p
             class="text-sm font-bold uppercase tracking-[0.35em] text-tui-muted sm:text-base"
           >
-            Click to decrypt
+            {t("about.decryptHint")}
           </p>
         </div>
         <div class="flex w-full max-w-xl flex-col gap-4">

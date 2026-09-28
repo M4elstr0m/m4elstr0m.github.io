@@ -11,7 +11,7 @@ startYear: 2023
 rank: 1
 ---
 
-**Tarkov Map Tracker** helps players find themselves on the sprawling maps of *Escape From Tarkov*. It watches the game's screenshot folder, and each time you take an in-game screenshot it geolocates and re-orients your position on an interactive map, no memory reading or game-file access involved.
+The **Tarkov Map Tracker** helps players find themselves on the sprawling maps of *Escape From Tarkov*. It watches the game's screenshot folder, and each time you take an in-game screenshot it geolocates and re-orients your position on an interactive map, no memory reading or game-file access involved.
 
 ## Overview
 

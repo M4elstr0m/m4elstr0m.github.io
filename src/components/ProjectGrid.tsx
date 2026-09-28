@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 
 interface StackTag {
+  key: string;
   label: string;
   icon?: { path: string; title: string };
   colorClass: string;
@@ -27,8 +28,19 @@ function formatStarCount(count: number): string {
   return `${(count / 1000).toFixed(1)}K`;
 }
 
+interface Strings {
+  searchPlaceholder: string;
+  filterAll: string;
+  noMatches: string;
+  private: string;
+  public: string;
+  now: string;
+}
+
 interface Props {
   projects: Project[];
+  basePath: string;
+  strings: Strings;
 }
 
 function levenshtein(a: string, b: string): number {
@@ -56,23 +68,25 @@ function matchesSearch(query: string, haystack: string): boolean {
   );
 }
 
-export default function ProjectGrid({ projects }: Props) {
+export default function ProjectGrid({ projects, basePath, strings }: Props) {
   const [active, setActive] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
   const tags = useMemo(() => {
-    const set = new Set<string>();
+    const map = new Map<string, string>();
     for (const project of projects) {
       for (const tech of project.stack) {
-        set.add(tech.label);
+        map.set(tech.key, tech.label);
       }
     }
-    return Array.from(set).sort();
+    return Array.from(map.entries())
+      .map(([key, label]) => ({ key, label }))
+      .sort((a, b) => a.label.localeCompare(b.label));
   }, [projects]);
 
   const filtered = projects.filter((project) => {
     const matchesTag =
-      !active || project.stack.some((tech) => tech.label === active);
+      !active || project.stack.some((tech) => tech.key === active);
     const haystack = `${project.title} ${project.summary} ${project.stack.map((tech) => tech.label).join(" ")}`;
     return matchesTag && matchesSearch(search, haystack);
   });
@@ -86,7 +100,7 @@ export default function ProjectGrid({ projects }: Props) {
           type="text"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
-          placeholder="search projects..."
+          placeholder={strings.searchPlaceholder}
           className="flex-1 bg-transparent text-tui-text placeholder:text-tui-muted focus:outline-none"
         />
       </div>
@@ -101,27 +115,27 @@ export default function ProjectGrid({ projects }: Props) {
               : "border-tui-border text-tui-muted hover:bg-tui-gold hover:text-tui-panel"
           }`}
         >
-          all
+          {strings.filterAll}
         </button>
         {tags.map((tag) => (
           <button
-            key={tag}
+            key={tag.key}
             type="button"
-            onClick={() => setActive(tag)}
+            onClick={() => setActive(tag.key)}
             className={`border px-3 py-1 text-xs uppercase tracking-wider transition-colors ${
-              active === tag
+              active === tag.key
                 ? "border-tui-gold bg-tui-gold font-bold text-tui-panel"
                 : "border-tui-border text-tui-muted hover:bg-tui-gold hover:text-tui-panel"
             }`}
           >
-            {tag}
+            {tag.label}
           </button>
         ))}
       </div>
 
       {filtered.length === 0 && (
         <p className="border border-tui-border bg-tui-panel px-4 py-6 text-center text-sm text-tui-muted">
-          no matches
+          {strings.noMatches}
         </p>
       )}
 
@@ -129,7 +143,7 @@ export default function ProjectGrid({ projects }: Props) {
         {filtered.map((project) => (
           <a
             key={project.slug}
-            href={`/projects/${project.slug}`}
+            href={`${basePath}/${project.slug}`}
             className="group flex flex-col border border-tui-border bg-tui-panel transition-colors hover:border-tui-cyan"
           >
             <div className="flex items-center gap-2 border-b border-tui-border bg-tui-border/20 px-4 py-2">
@@ -137,7 +151,7 @@ export default function ProjectGrid({ projects }: Props) {
               <span
                 className={`text-xs font-bold uppercase tracking-[0.25em] ${project.private ? "text-tui-red" : "text-tui-green"}`}
               >
-                {project.private ? "private" : "public"}
+                {project.private ? strings.private : strings.public}
               </span>
             </div>
             <img
@@ -170,8 +184,8 @@ export default function ProjectGrid({ projects }: Props) {
               <ul className="flex flex-wrap gap-2 pt-2">
                 {project.stack.map((tech) => (
                   <li
-                    key={tech.label}
-                    data-tag={tech.label.toLowerCase()}
+                    key={tech.key}
+                    data-tag={tech.key}
                     className={`flex items-center gap-1.5 border border-tui-border px-2 py-0.5 text-xs uppercase tracking-wider transition-all duration-200 hover:-translate-y-0.5 ${tech.colorClass}`}
                   >
                     {tech.icon && (
@@ -189,7 +203,7 @@ export default function ProjectGrid({ projects }: Props) {
                 ))}
               </ul>
               <p className="pt-1 text-xs text-tui-muted">
-                {project.startYear}-{project.endYear ?? "Now"}
+                {project.startYear}-{project.endYear ?? strings.now}
               </p>
             </div>
           </a>

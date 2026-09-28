@@ -1,15 +1,25 @@
 ---
+import { getRelativeLocaleUrl } from 'astro:i18n';
 import LucideIcon from './LucideIcon.astro';
+import { useTranslations } from '../i18n/utils';
+import { stripLocalePrefix } from '../lib/locale-path';
+
+const locale = Astro.currentLocale ?? 'en';
+const t = useTranslations(locale);
+
+const homeHref = getRelativeLocaleUrl(locale, '/');
+const contactHref = `${homeHref}#contact`;
+const currentPath = stripLocalePrefix(Astro.url.pathname);
 
 const links = [
-  { href: '/about', label: 'about', section: 'about', key: 'about' },
-  { href: '/projects', label: 'projects', section: 'projects', key: 'projects' },
-  { href: '/#contact', label: 'contact', section: null, key: 'contact' },
+  { href: getRelativeLocaleUrl(locale, '/about'), label: t('nav.about'), section: 'about', key: 'about' },
+  { href: getRelativeLocaleUrl(locale, '/projects'), label: t('nav.projects'), section: 'projects', key: 'projects' },
+  { href: contactHref, label: t('nav.contact'), section: null, key: 'contact' },
 ];
 
 const path = Astro.url.pathname;
-const isRouteActive = (href: string) => href !== '/#contact' && (path === href || path.startsWith(`${href}/`));
-const isHomeActive = path === '/';
+const isRouteActive = (href: string) => href !== contactHref && (path === href || path.startsWith(`${href}/`));
+const isHomeActive = path === homeHref;
 ---
 
 <nav
@@ -20,8 +30,8 @@ const isHomeActive = path === '/';
   <ul class="flex items-stretch divide-x divide-tui-border text-[10px] uppercase tracking-[0.15em] sm:text-xs sm:tracking-[0.3em]">
     <li>
       <a
-        href="/"
-        aria-label="Home"
+        href={homeHref}
+        aria-label={t('nav.homeAriaLabel')}
         data-nav-link="home"
         class:list={['tui-nav-home flex h-full items-center px-3 transition-colors sm:px-4', isHomeActive && 'is-active']}
       >
@@ -45,6 +55,43 @@ const isHomeActive = path === '/';
         </li>
       ))
     }
+    <li class="relative" data-lang-dropdown>
+      <button
+        type="button"
+        data-lang-trigger
+        aria-haspopup="true"
+        aria-expanded="false"
+        aria-label={t('nav.language')}
+        class="tui-nav-link flex h-full items-center px-3 transition-colors sm:px-4"
+      >
+        <LucideIcon name="languages" class="h-4 w-4" />
+      </button>
+      <ul
+        data-lang-menu
+        class="absolute right-0 top-[calc(100%+0.5rem)] z-50 hidden min-w-[8rem] flex-col border border-tui-border bg-tui-panel py-1 shadow-lg"
+      >
+        <li>
+          <a
+            href={getRelativeLocaleUrl('en', currentPath)}
+            data-locale-switch="en"
+            class:list={['flex items-center justify-between gap-3 px-3 py-2 transition-colors', locale === 'en' ? 'font-bold text-tui-gold' : 'text-tui-muted hover:bg-tui-gold hover:text-tui-panel']}
+          >
+            English
+            {locale === 'en' && <LucideIcon name="check" class="h-3 w-3" />}
+          </a>
+        </li>
+        <li>
+          <a
+            href={getRelativeLocaleUrl('fr', currentPath)}
+            data-locale-switch="fr"
+            class:list={['flex items-center justify-between gap-3 px-3 py-2 transition-colors', locale === 'fr' ? 'font-bold text-tui-gold' : 'text-tui-muted hover:bg-tui-gold hover:text-tui-panel']}
+          >
+            Français
+            {locale === 'fr' && <LucideIcon name="check" class="h-3 w-3" />}
+          </a>
+        </li>
+      </ul>
+    </li>
   </ul>
 </nav>
 
@@ -73,9 +120,11 @@ const isHomeActive = path === '/';
 
 <script>
   import { navigate } from 'astro:transitions/client';
+  import { isHomePath } from '../lib/locale-path';
 
   const NAVBAR_OFFSET = 80;
   const BASE_SWIPE_MS = 400;
+  const LOCALE_STORAGE_KEY = 'preferred-locale';
 
   function isSectionAligned(id: string) {
     const el = document.getElementById(id);
@@ -106,13 +155,40 @@ const isHomeActive = path === '/';
   }
 
   function bindNavbar() {
-    const homeLink = document.querySelector<HTMLAnchorElement>('a[aria-label="Home"]');
+    const homeLink = document.querySelector<HTMLAnchorElement>('[data-nav-link="home"]');
     if (homeLink && !homeLink.dataset.bound) {
       homeLink.dataset.bound = 'true';
       homeLink.addEventListener('click', (event) => {
-        if (location.pathname === '/' && isSectionAligned('about')) {
+        if (isHomePath(location.pathname) && isSectionAligned('about')) {
           event.preventDefault();
         }
+      });
+    }
+
+    for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-locale-switch]')) {
+      if (link.dataset.bound) continue;
+      link.dataset.bound = 'true';
+      link.addEventListener('click', () => {
+        const target = link.dataset.localeSwitch;
+        if (!target) return;
+        try {
+          localStorage.setItem(LOCALE_STORAGE_KEY, target);
+        } catch {
+          /* ignore */
+        }
+      });
+    }
+
+    const langWrapper = document.querySelector<HTMLElement>('[data-lang-dropdown]');
+    const langTrigger = langWrapper?.querySelector<HTMLButtonElement>('[data-lang-trigger]');
+    const langMenu = langWrapper?.querySelector<HTMLElement>('[data-lang-menu]');
+    if (langWrapper && langTrigger && langMenu && !langTrigger.dataset.bound) {
+      langTrigger.dataset.bound = 'true';
+      langTrigger.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const isOpen = !langMenu.classList.contains('hidden');
+        langMenu.classList.toggle('hidden', isOpen);
+        langTrigger.setAttribute('aria-expanded', String(!isOpen));
       });
     }
 
@@ -128,7 +204,7 @@ const isHomeActive = path === '/';
         }
 
         const sectionId = link.dataset.carouselSection;
-        if (!sectionId || location.pathname !== '/') return;
+        if (!sectionId || !isHomePath(location.pathname)) return;
 
         const section = document.getElementById(sectionId);
         if (!section) return;
@@ -198,7 +274,7 @@ const isHomeActive = path === '/';
   let homeNavScrollBound = false;
 
   function bindHomeNavTracking() {
-    if (location.pathname !== '/') {
+    if (!isHomePath(location.pathname)) {
       if (homeNavScrollBound) {
         window.removeEventListener('scroll', updateHomeNavActive);
         window.removeEventListener('carousel-settled', updateHomeNavActive);
@@ -213,6 +289,21 @@ const isHomeActive = path === '/';
       window.addEventListener('carousel-settled', updateHomeNavActive);
     }
   }
+
+  function closeLangMenu() {
+    document.querySelector('[data-lang-menu]')?.classList.add('hidden');
+    document
+      .querySelector('[data-lang-trigger]')
+      ?.setAttribute('aria-expanded', 'false');
+  }
+
+  document.addEventListener('click', (event) => {
+    const wrapper = document.querySelector('[data-lang-dropdown]');
+    if (wrapper && !wrapper.contains(event.target as Node)) closeLangMenu();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeLangMenu();
+  });
 
   refreshNavLinkEls();
   bindNavbar();

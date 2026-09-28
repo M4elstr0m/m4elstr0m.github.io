@@ -12,11 +12,7 @@ html {
 
 @media (pointer: coarse) and (max-width: 767px) {
   html {
-    scroll-snap-type: y proximity;
-  }
-
-  .snap-start {
-    scroll-snap-stop: always;
+    scroll-snap-type: none;
   }
 }
 
