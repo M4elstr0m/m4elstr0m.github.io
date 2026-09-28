@@ -8,6 +8,7 @@ import BackHint from '../../components/BackHint.astro';
 import { findIcon } from '../../lib/find-icon';
 import { getTagColor, tagColorClasses } from '../../lib/categorize-tag';
 import { sortProjectsByRank } from '../../lib/sort-projects';
+import { projectCoverPlaceholderDataUri } from '../../lib/project-cover-placeholder';
 
 const tagsEntry = await getEntry('pages', 'tags');
 const tagColorMap = Object.fromEntries(
@@ -25,7 +26,7 @@ const projects = sorted.map((entry) => ({
     icon: findIcon(tech),
     colorClass: tagColorClasses[getTagColor(tech, tagColorMap)],
   })),
-  cover: entry.data.coverGif ?? entry.data.cover.src,
+  cover: entry.data.coverGif ?? entry.data.cover?.src ?? projectCoverPlaceholderDataUri(entry.data.title),
   projectIcon: entry.data.icon ?? null,
   private: entry.data.private,
   stars: entry.stars,

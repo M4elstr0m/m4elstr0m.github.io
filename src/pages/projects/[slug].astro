@@ -6,6 +6,7 @@ import TerminalPanel from "../../components/TerminalPanel.astro";
 import Button from "../../components/Button.astro";
 import ProjectTag from "../../components/ProjectTag.astro";
 import LucideIcon from "../../components/LucideIcon.astro";
+import ProjectCoverPlaceholder from "../../components/ProjectCoverPlaceholder.astro";
 import { fetchGithubStars, formatStarCount } from "../../lib/github-stars";
 
 export async function getStaticPaths() {
@@ -60,8 +61,10 @@ const stars = displayStars && repo ? await fetchGithubStars(repo) : null;
       {
         coverGif ? (
           <img src={coverGif} alt="" class="w-full border border-tui-border" />
-        ) : (
+        ) : cover ? (
           <Image src={cover} alt="" class="w-full border border-tui-border" />
+        ) : (
+          <ProjectCoverPlaceholder title={title} class="w-full border border-tui-border" />
         )
       }
 

@@ -4,6 +4,7 @@ import { Image } from 'astro:assets';
 import TerminalPanel from './TerminalPanel.astro';
 import ProjectTag from './ProjectTag.astro';
 import LucideIcon from './LucideIcon.astro';
+import ProjectCoverPlaceholder from './ProjectCoverPlaceholder.astro';
 import { fetchGithubStars, formatStarCount } from '../lib/github-stars';
 
 interface Props {
@@ -44,7 +45,7 @@ const stars = displayStars && repo ? await fetchGithubStars(repo) : null;
           decoding="async"
           class="aspect-video w-full border-b border-tui-border object-cover"
         />
-      ) : (
+      ) : cover ? (
         <Image
           src={cover}
           alt=""
@@ -52,6 +53,8 @@ const stars = displayStars && repo ? await fetchGithubStars(repo) : null;
           decoding="async"
           class="aspect-video w-full border-b border-tui-border object-cover"
         />
+      ) : (
+        <ProjectCoverPlaceholder title={title} class="aspect-video w-full border-b border-tui-border" />
       )
     }
     <div class="flex flex-1 flex-col gap-2 p-5">

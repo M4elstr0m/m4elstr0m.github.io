@@ -35,5 +35,5 @@ Every push to `main` triggers `.github/workflows/deploy.yml`, which builds the s
 
 ## Roadmap
 
+- [x] Phone accessbility (disable carousel scroll)
 - [ ] French localization (i18n)
-- [ ] Phone accessbility (dark theme, scroll issues)

@@ -13,7 +13,7 @@ const projects = defineCollection({
       title: z.string(),
       summary: z.string(),
       stack: z.array(z.string()),
-      cover: image(),
+      cover: image().optional(),
       coverGif: z.string().optional(),
       icon: z.string().optional(),
       gallery: z.array(image()).default([]),
