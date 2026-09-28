@@ -6,7 +6,7 @@ export interface TagMaps {
 }
 
 export async function getLocalizedTagMaps(locale: string): Promise<TagMaps> {
-  const base = await getEntry('pages', 'tags');
+  const base = await getEntry('taxonomy', 'tags');
   const tooltipMap: Record<string, string> = {};
   const labelMap: Record<string, string> = {};
 
@@ -15,7 +15,7 @@ export async function getLocalizedTagMaps(locale: string): Promise<TagMaps> {
   }
 
   if (locale === 'fr') {
-    const override = await getEntry('pagesFr', 'tags');
+    const override = await getEntry('taxonomyFr', 'tags');
     for (const entry of override?.data.tags ?? []) {
       const key = entry.tag.toLowerCase();
       if (entry.tooltip) tooltipMap[key] = entry.tooltip;

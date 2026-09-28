@@ -1,0 +1,134 @@
+<canvas id="ascii-storm" class="pointer-events-none fixed inset-0 z-40" transition:persist></canvas>
+
+<script>
+  interface Particle {
+    x: number;
+    y: number;
+    char: string;
+    born: number;
+    life: number;
+    vy: number;
+  }
+
+  interface Storm {
+    canvas: HTMLCanvasElement | null;
+    ctx: CanvasRenderingContext2D | null;
+    particles: Particle[];
+    lastSpawn: number;
+    ready: boolean;
+  }
+
+  declare global {
+    interface Window {
+      __asciiStorm?: Storm;
+    }
+  }
+
+  function applyStormCanvasDefaults(ctx: CanvasRenderingContext2D) {
+    ctx.font = '11px "JetBrains Mono", monospace';
+    ctx.fillStyle = "#f5f5f5";
+  }
+
+  function bindStormCanvas(storm: Storm) {
+    const el = document.getElementById("ascii-storm");
+    if (el instanceof HTMLCanvasElement && el !== storm.canvas) {
+      storm.canvas = el;
+      storm.ctx = el.getContext("2d");
+      el.width = window.innerWidth;
+      el.height = window.innerHeight;
+      if (storm.ctx) applyStormCanvasDefaults(storm.ctx);
+    }
+  }
+
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const storm: Storm = window.__asciiStorm ?? {
+      canvas: null,
+      ctx: null,
+      particles: [],
+      lastSpawn: 0,
+      ready: false,
+    };
+    window.__asciiStorm = storm;
+
+    bindStormCanvas(storm);
+    document.addEventListener("astro:page-load", () => bindStormCanvas(storm));
+
+    if (!storm.ready) {
+      storm.ready = true;
+      const chars = "#$%&*+-/<>=~^:;.,_|01".split("");
+
+      let panelEls: Element[] = [];
+      let panelRects: DOMRect[] = [];
+      function refreshPanelEls() {
+        panelEls = Array.from(document.querySelectorAll(".bg-tui-panel"));
+        refreshPanelRects();
+      }
+      function refreshPanelRects() {
+        if (document.documentElement.dataset.carouselAnimating === "true")
+          return;
+        panelRects = panelEls.map((el) => el.getBoundingClientRect());
+      }
+      function isOverPanel(x: number, y: number) {
+        return panelRects.some(
+          (rect) =>
+            x >= rect.left &&
+            x <= rect.right &&
+            y >= rect.top &&
+            y <= rect.bottom,
+        );
+      }
+      refreshPanelEls();
+      window.addEventListener("scroll", refreshPanelRects, { passive: true });
+      window.addEventListener("resize", refreshPanelEls);
+      document.addEventListener("astro:page-load", refreshPanelEls);
+      window.addEventListener("carousel-settled", refreshPanelRects);
+      setInterval(refreshPanelEls, 500);
+
+      window.addEventListener("resize", () => {
+        if (storm.canvas) {
+          storm.canvas.width = window.innerWidth;
+          storm.canvas.height = window.innerHeight;
+          if (storm.ctx) applyStormCanvasDefaults(storm.ctx);
+        }
+      });
+
+      window.addEventListener("mousemove", (event) => {
+        const now = performance.now();
+        if (now - storm.lastSpawn < 12) return;
+        storm.lastSpawn = now;
+        for (let i = 0; i < 3; i++) {
+          storm.particles.push({
+            x: event.clientX + (Math.random() - 0.5) * 60,
+            y: event.clientY + (Math.random() - 0.5) * 60,
+            char: chars[Math.floor(Math.random() * chars.length)],
+            born: now,
+            life: 500 + Math.random() * 400,
+            vy: -0.2 - Math.random() * 0.3,
+          });
+        }
+        if (storm.particles.length > 400)
+          storm.particles.splice(0, storm.particles.length - 400);
+      });
+
+      function frame(now: number) {
+        const { canvas, ctx } = storm;
+        if (canvas && ctx) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          storm.particles = storm.particles.filter(
+            (p) => now - p.born < p.life,
+          );
+          for (const p of storm.particles) {
+            const age = (now - p.born) / p.life;
+            p.y += p.vy;
+            const dimmed = isOverPanel(p.x, p.y) ? 0.2 : 1;
+            ctx.globalAlpha = (1 - age) * 0.9 * dimmed;
+            ctx.fillText(p.char, p.x, p.y);
+          }
+          ctx.globalAlpha = 1;
+        }
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    }
+  }
+</script>

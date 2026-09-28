@@ -1,0 +1,113 @@
+---
+import { getRelativeLocaleUrl } from "astro:i18n";
+import LucideIcon from "./LucideIcon.astro";
+import { useTranslations } from "../i18n/utils";
+import { stripLocalePrefix } from "../lib/locale-path";
+
+const locale = Astro.currentLocale ?? "en";
+const t = useTranslations(locale);
+const currentPath = stripLocalePrefix(Astro.url.pathname);
+---
+
+<div class="relative h-full" data-lang-dropdown>
+  <button
+    type="button"
+    data-lang-trigger
+    aria-haspopup="true"
+    aria-expanded="false"
+    aria-label={t("nav.language")}
+    class="flex h-full cursor-pointer items-center px-3 text-tui-text transition-colors hover:bg-tui-gold hover:text-tui-panel sm:px-4"
+  >
+    <LucideIcon name="languages" class="h-4 w-4" />
+  </button>
+  <ul
+    data-lang-menu
+    class="absolute right-0 top-[calc(100%+0.5rem)] z-50 hidden min-w-32 flex-col border border-tui-border bg-tui-panel py-1 shadow-lg"
+  >
+    <li>
+      <a
+        href={getRelativeLocaleUrl("en", currentPath)}
+        data-locale-switch="en"
+        class:list={[
+          "flex items-center justify-between gap-3 px-3 py-2 transition-colors",
+          locale === "en"
+            ? "font-bold text-tui-gold"
+            : "text-tui-muted hover:bg-tui-gold hover:text-tui-panel",
+        ]}
+      >
+        English
+        {locale === "en" && <LucideIcon name="check" class="h-3 w-3" />}
+      </a>
+    </li>
+    <li>
+      <a
+        href={getRelativeLocaleUrl("fr", currentPath)}
+        data-locale-switch="fr"
+        class:list={[
+          "flex items-center justify-between gap-3 px-3 py-2 transition-colors",
+          locale === "fr"
+            ? "font-bold text-tui-gold"
+            : "text-tui-muted hover:bg-tui-gold hover:text-tui-panel",
+        ]}
+      >
+        Français
+        {locale === "fr" && <LucideIcon name="check" class="h-3 w-3" />}
+      </a>
+    </li>
+  </ul>
+</div>
+
+<script>
+  import { LOCALE_STORAGE_KEY } from "../lib/locale-path";
+
+  function closeLangMenu() {
+    document.querySelector("[data-lang-menu]")?.classList.add("hidden");
+    document
+      .querySelector("[data-lang-trigger]")
+      ?.setAttribute("aria-expanded", "false");
+  }
+
+  function bindLanguageSwitcher() {
+    const wrapper = document.querySelector<HTMLElement>("[data-lang-dropdown]");
+    const trigger = wrapper?.querySelector<HTMLButtonElement>(
+      "[data-lang-trigger]",
+    );
+    const menu = wrapper?.querySelector<HTMLElement>("[data-lang-menu]");
+    if (wrapper && trigger && menu && !trigger.dataset.bound) {
+      trigger.dataset.bound = "true";
+      trigger.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const isOpen = !menu.classList.contains("hidden");
+        menu.classList.toggle("hidden", isOpen);
+        trigger.setAttribute("aria-expanded", String(!isOpen));
+      });
+    }
+
+    for (const link of document.querySelectorAll<HTMLAnchorElement>(
+      "[data-locale-switch]",
+    )) {
+      if (link.dataset.bound) continue;
+      link.dataset.bound = "true";
+      link.addEventListener("click", () => {
+        const target = link.dataset.localeSwitch;
+        if (!target) return;
+        try {
+          localStorage.setItem(LOCALE_STORAGE_KEY, target);
+        } catch {
+          /* ignore */
+        }
+      });
+    }
+  }
+
+  document.addEventListener("click", (event) => {
+    const wrapper = document.querySelector("[data-lang-dropdown]");
+    if (wrapper && !wrapper.contains(event.target as Node)) closeLangMenu();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeLangMenu();
+  });
+
+  bindLanguageSwitcher();
+  document.addEventListener("astro:page-load", bindLanguageSwitcher);
+</script>

@@ -57,15 +57,38 @@ const pages = defineCollection({
         }),
       )
       .optional(),
-    tags: z
-      .array(
-        z.object({
-          tag: z.string(),
-          tooltip: z.string(),
-          color: z.enum(['green', 'cyan', 'orange']),
-        }),
-      )
-      .optional(),
+  }),
+});
+
+const taxonomy = defineCollection({
+  loader: glob({
+    pattern: '*.md',
+    base: new URL('../data/taxonomy', import.meta.url),
+  }),
+  schema: z.object({
+    tags: z.array(
+      z.object({
+        tag: z.string(),
+        tooltip: z.string(),
+        color: z.enum(['green', 'cyan', 'orange']),
+      }),
+    ),
+  }),
+});
+
+const taxonomyFr = defineCollection({
+  loader: glob({
+    pattern: '*.md',
+    base: new URL('../data/i18n/fr/taxonomy', import.meta.url),
+  }),
+  schema: z.object({
+    tags: z.array(
+      z.object({
+        tag: z.string(),
+        label: z.string().optional(),
+        tooltip: z.string().optional(),
+      }),
+    ),
   }),
 });
 
@@ -94,16 +117,7 @@ const pagesFr = defineCollection({
         }),
       )
       .optional(),
-    tags: z
-      .array(
-        z.object({
-          tag: z.string(),
-          label: z.string().optional(),
-          tooltip: z.string().optional(),
-        }),
-      )
-      .optional(),
   }),
 });
 
-export const collections = { projects, pages, projectsFr, pagesFr };
+export const collections = { projects, pages, taxonomy, taxonomyFr, projectsFr, pagesFr };
