@@ -7,7 +7,7 @@ interface Props {
 }
 
 const { title, class: className } = Astro.props;
-const svg = renderProjectCoverPlaceholderSvg(title).replace('<svg ', `<svg class="${className ?? ''}" `);
+const svg = renderProjectCoverPlaceholderSvg(title, Astro.currentLocale).replace('<svg ', `<svg class="${className ?? ''}" `);
 ---
 
 <Fragment set:html={svg} />

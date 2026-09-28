@@ -72,6 +72,9 @@ export const ui = {
     "redacted.ariaPrefix": "Classified transmission, click to decrypt:",
 
     "tooltip.unavailable": "No tooltip available",
+
+    "placeholder.redacted": "REDACTED",
+    "placeholder.noCover": "(no cover available)",
   },
   fr: {
     "brand.name": "M4elstr0m",
@@ -143,6 +146,9 @@ export const ui = {
     "redacted.ariaPrefix": "Cliquer pour déchiffrer",
 
     "tooltip.unavailable": "Aucune info-bulle disponible",
+
+    "placeholder.redacted": "CENSURÉ",
+    "placeholder.noCover": "(image non disponible)",
   },
 } as const;
 

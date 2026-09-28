@@ -36,7 +36,7 @@ const projects = await Promise.all(
       icon: findIcon(tech),
       colorClass: tagColorClasses[getTagColor(tech, tagColorMap)],
     })),
-    cover: entry.data.coverGif ?? entry.data.cover?.src ?? projectCoverPlaceholderDataUri(entry.data.title),
+    cover: entry.data.coverGif ?? entry.data.cover?.src ?? projectCoverPlaceholderDataUri(entry.data.title, locale),
     projectIcon: entry.data.icon ?? null,
     private: entry.data.private,
     stars: entry.stars,

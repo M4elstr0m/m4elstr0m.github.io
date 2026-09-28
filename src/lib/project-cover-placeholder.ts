@@ -1,9 +1,14 @@
+import { useTranslations } from '../i18n/utils';
+
 function escapeXml(text: string): string {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-export function renderProjectCoverPlaceholderSvg(title: string): string {
+export function renderProjectCoverPlaceholderSvg(title: string, locale?: string): string {
+  const t = useTranslations(locale);
   const accessibleTitle = escapeXml(title);
+  const redactedText = escapeXml(t('placeholder.redacted'));
+  const noCoverText = escapeXml(t('placeholder.noCover'));
   return `<svg viewBox="200 125 400 225" xmlns="http://www.w3.org/2000/svg">
   <title>${accessibleTitle}: cover not available</title>
   <rect width="800" height="450" fill="#05070a" />
@@ -24,12 +29,12 @@ export function renderProjectCoverPlaceholderSvg(title: string): string {
     <circle cx="624" cy="426" r="1.5" /><circle cx="664" cy="426" r="1.5" /><circle cx="704" cy="426" r="1.5" />
     <circle cx="744" cy="426" r="1.5" /><circle cx="784" cy="426" r="1.5" />
   </g>
-  <text x="400" y="235" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="52" font-weight="700" letter-spacing="6" fill="#e6e6e6" text-anchor="middle">REDACTED</text>
-  <text x="400" y="266" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="14" letter-spacing="2" fill="#6b7280" text-anchor="middle">(no cover available)</text>
+  <text x="400" y="235" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="52" font-weight="700" letter-spacing="6" fill="#e6e6e6" text-anchor="middle">${redactedText}</text>
+  <text x="400" y="266" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="14" letter-spacing="2" fill="#6b7280" text-anchor="middle">${noCoverText}</text>
 </svg>`;
 }
 
-export function projectCoverPlaceholderDataUri(title: string): string {
-  const svg = renderProjectCoverPlaceholderSvg(title);
+export function projectCoverPlaceholderDataUri(title: string, locale?: string): string {
+  const svg = renderProjectCoverPlaceholderSvg(title, locale);
   return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
