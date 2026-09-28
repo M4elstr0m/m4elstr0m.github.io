@@ -15,6 +15,7 @@ const projects = defineCollection({
       stack: z.array(z.string()),
       cover: image(),
       coverGif: z.string().optional(),
+      icon: z.string().optional(),
       gallery: z.array(image()).default([]),
       youtubeId: z.string().optional(),
       audio: z.string().optional(),
@@ -56,11 +57,12 @@ const pages = defineCollection({
         }),
       )
       .optional(),
-    tooltips: z
+    tags: z
       .array(
         z.object({
           tag: z.string(),
-          description: z.string(),
+          tooltip: z.string(),
+          color: z.enum(['green', 'cyan', 'orange']),
         }),
       )
       .optional(),

@@ -14,12 +14,9 @@ const { title, description } = Astro.props;
 
 const currentYear = new Date().getFullYear();
 
-const tooltipsEntry = await getEntry("pages", "tooltips");
+const tagsEntry = await getEntry("pages", "tags");
 const tooltipsMap = Object.fromEntries(
-  (tooltipsEntry?.data.tooltips ?? []).map((t) => [
-    t.tag.toLowerCase(),
-    t.description,
-  ]),
+  (tagsEntry?.data.tags ?? []).map((t) => [t.tag.toLowerCase(), t.tooltip]),
 );
 ---
 
@@ -30,6 +27,17 @@ const tooltipsMap = Object.fromEntries(
     <ClientRouter />
   </head>
   <body class="min-h-screen bg-tui-bg font-mono text-tui-text antialiased">
+    <div
+      id="loading-screen"
+      transition:persist
+      class="pointer-events-none fixed inset-0 z-[200] flex items-center justify-center bg-tui-bg"
+    >
+      <p class="flex items-center gap-2 font-mono text-sm uppercase tracking-[0.2em] text-tui-green">
+        <span>$</span>
+        <span>booting m4elstr0m.sh</span>
+        <span class="tui-cursor inline-block h-[1em] w-[0.55ch] bg-tui-gold align-middle"></span>
+      </p>
+    </div>
     <canvas
       id="ascii-storm"
       class="pointer-events-none fixed inset-0 z-40"
@@ -203,6 +211,7 @@ const tooltipsMap = Object.fromEntries(
 
       link.target = "_blank";
       link.rel = "noopener noreferrer";
+      link.dataset.urlTooltip = link.href;
 
       if (link.hasAttribute("data-no-external-icon")) continue;
 
@@ -224,6 +233,21 @@ const tooltipsMap = Object.fromEntries(
 
   markExternalLinks();
   document.addEventListener("astro:page-load", markExternalLinks);
+
+  function hideLoadingScreen() {
+    const el = document.getElementById("loading-screen");
+    if (!el || el.dataset.hidden === "true") return;
+    el.dataset.hidden = "true";
+    el.style.transition = "opacity 300ms ease-out";
+    el.style.opacity = "0";
+  }
+
+  if (document.readyState === "complete") {
+    hideLoadingScreen();
+  } else {
+    window.addEventListener("load", hideLoadingScreen, { once: true });
+  }
+  document.addEventListener("astro:page-load", hideLoadingScreen);
 
   function updateCopyrightYear() {
     const el = document.getElementById("copyright-year");
@@ -503,20 +527,20 @@ const tooltipsMap = Object.fromEntries(
     return escaped.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   }
 
-  let tagTooltipEl: HTMLDivElement | null = null;
-  function getTagTooltipEl() {
-    if (!tagTooltipEl || !document.body.contains(tagTooltipEl)) {
-      tagTooltipEl = document.createElement("div");
-      tagTooltipEl.className =
+  let hoverTooltipEl: HTMLDivElement | null = null;
+  function getHoverTooltipEl() {
+    if (!hoverTooltipEl || !document.body.contains(hoverTooltipEl)) {
+      hoverTooltipEl = document.createElement("div");
+      hoverTooltipEl.className =
         "tui-tag-tooltip pointer-events-none fixed z-[100] max-w-xs origin-bottom border bg-tui-panel px-3 py-2 text-xs leading-relaxed text-tui-text opacity-0 shadow-lg transition-[opacity,transform] duration-200 ease-out";
-      document.body.appendChild(tagTooltipEl);
+      document.body.appendChild(hoverTooltipEl);
     }
-    return tagTooltipEl;
+    return hoverTooltipEl;
   }
 
   let tooltipHoverTimer: ReturnType<typeof setTimeout> | null = null;
 
-  function positionTagTooltip(el: HTMLElement, target: HTMLElement) {
+  function positionHoverTooltip(el: HTMLElement, target: HTMLElement) {
     const margin = 8;
     const rect = target.getBoundingClientRect();
     el.style.transform = "translateY(6px) scale(0.92)";
@@ -539,40 +563,46 @@ const tooltipsMap = Object.fromEntries(
     });
   }
 
-  function showTagTooltip(target: HTMLElement) {
-    const tag = target.dataset.tag;
-    if (!tag) return;
-    const el = getTagTooltipEl();
-    const description = tagTooltips[tag];
-
-    if (description) {
-      el.innerHTML = renderTooltipMarkup(description);
-    } else {
-      el.innerHTML = `<span class="mr-1.5 inline-flex h-3.5 w-3.5 shrink-0 -translate-y-0.5 align-middle text-tui-muted">${INFO_ICON_SVG}</span>No tooltip available`;
+  function getHoverTooltipContent(target: HTMLElement): string | null {
+    if (target.dataset.tag) {
+      const description = tagTooltips[target.dataset.tag];
+      if (description) return renderTooltipMarkup(description);
+      return `<span class="mr-1.5 inline-flex h-3.5 w-3.5 shrink-0 -translate-y-0.5 align-middle text-tui-muted">${INFO_ICON_SVG}</span>No tooltip available`;
     }
+    if (target.dataset.urlTooltip) {
+      return renderTooltipMarkup(target.dataset.urlTooltip);
+    }
+    return null;
+  }
+
+  function showHoverTooltip(target: HTMLElement) {
+    const content = getHoverTooltipContent(target);
+    if (!content) return;
+    const el = getHoverTooltipEl();
+    el.innerHTML = content;
 
     const accent = getComputedStyle(target).color;
     el.style.borderColor = accent;
     el.style.boxShadow = `0 0 12px color-mix(in srgb, ${accent} 35%, transparent)`;
     el.style.setProperty("--tag-tooltip-accent", accent);
 
-    positionTagTooltip(el, target);
+    positionHoverTooltip(el, target);
   }
 
-  function hideTagTooltip() {
-    if (!tagTooltipEl) return;
-    tagTooltipEl.style.opacity = "0";
-    tagTooltipEl.style.transform = "translateY(6px) scale(0.92)";
+  function hideHoverTooltip() {
+    if (!hoverTooltipEl) return;
+    hoverTooltipEl.style.opacity = "0";
+    hoverTooltipEl.style.transform = "translateY(6px) scale(0.92)";
   }
 
   document.addEventListener("mouseover", (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
-    const tagEl = target.closest<HTMLElement>("[data-tag]");
-    if (!tagEl) return;
+    const hoverEl = target.closest<HTMLElement>("[data-tag], [data-url-tooltip]");
+    if (!hoverEl) return;
     if (tooltipHoverTimer) clearTimeout(tooltipHoverTimer);
     tooltipHoverTimer = setTimeout(
-      () => showTagTooltip(tagEl),
+      () => showHoverTooltip(hoverEl),
       TOOLTIP_HOVER_DELAY_MS,
     );
   });
@@ -580,14 +610,14 @@ const tooltipsMap = Object.fromEntries(
   document.addEventListener("mouseout", (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
-    const tagEl = target.closest<HTMLElement>("[data-tag]");
-    if (!tagEl) return;
+    const hoverEl = target.closest<HTMLElement>("[data-tag], [data-url-tooltip]");
+    if (!hoverEl) return;
     const related = event.relatedTarget;
-    if (related instanceof Node && tagEl.contains(related)) return;
+    if (related instanceof Node && hoverEl.contains(related)) return;
     if (tooltipHoverTimer) {
       clearTimeout(tooltipHoverTimer);
       tooltipHoverTimer = null;
     }
-    hideTagTooltip();
+    hideHoverTooltip();
   });
 </script>

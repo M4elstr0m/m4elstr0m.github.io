@@ -12,6 +12,7 @@ interface Project {
   summary: string;
   stack: StackTag[];
   cover: string;
+  projectIcon: string | null;
   private: boolean;
   stars: number | null;
   startYear: number;
@@ -148,9 +149,14 @@ export default function ProjectGrid({ projects }: Props) {
             />
             <div className="flex flex-1 flex-col gap-2 p-5">
               <div className="flex items-start justify-between gap-2">
-                <h3 className="text-lg font-semibold text-tui-text transition-colors group-hover:text-tui-cyan">
-                  {project.title}
-                </h3>
+                <div className="flex items-center gap-2">
+                  {project.projectIcon && (
+                    <img src={project.projectIcon} alt="" className="h-6 w-6 shrink-0 object-contain" />
+                  )}
+                  <h3 className="text-lg font-semibold text-tui-text transition-colors group-hover:text-tui-cyan">
+                    {project.title}
+                  </h3>
+                </div>
                 {project.stars != null && (
                   <span className="flex shrink-0 items-center gap-1 pt-0.5 text-xs font-semibold text-tui-gold">
                     <svg viewBox="0 0 24 24" role="img" aria-label="stars" className="h-3.5 w-3.5 fill-current">

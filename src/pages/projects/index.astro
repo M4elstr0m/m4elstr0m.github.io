@@ -6,15 +6,13 @@ import TerminalPanel from '../../components/TerminalPanel.astro';
 import ProjectGrid from '../../components/ProjectGrid';
 import BackHint from '../../components/BackHint.astro';
 import { findIcon } from '../../lib/find-icon';
-import { categorizeTag, tagColorClasses } from '../../lib/categorize-tag';
+import { getTagColor, tagColorClasses } from '../../lib/categorize-tag';
 import { sortProjectsByRank } from '../../lib/sort-projects';
 
-const about = await getEntry('pages', 'about');
-const categories = {
-  interests: about?.data.interests ?? [],
-  stack: about?.data.stack ?? [],
-  tools: about?.data.tools ?? [],
-};
+const tagsEntry = await getEntry('pages', 'tags');
+const tagColorMap = Object.fromEntries(
+  (tagsEntry?.data.tags ?? []).map((t) => [t.tag.toLowerCase(), t.color]),
+);
 
 const entries = await getCollection('projects');
 const sorted = await sortProjectsByRank(entries);
@@ -25,9 +23,10 @@ const projects = sorted.map((entry) => ({
   stack: entry.data.stack.map((tech) => ({
     label: tech,
     icon: findIcon(tech),
-    colorClass: tagColorClasses[categorizeTag(tech, categories)],
+    colorClass: tagColorClasses[getTagColor(tech, tagColorMap)],
   })),
   cover: entry.data.coverGif ?? entry.data.cover.src,
+  projectIcon: entry.data.icon ?? null,
   private: entry.data.private,
   stars: entry.stars,
   startYear: entry.data.startYear,

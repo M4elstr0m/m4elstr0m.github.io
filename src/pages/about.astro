@@ -110,7 +110,7 @@ const { Content: Extended } = await render(aboutExtended);
           <AboutBadges interests={interests} stack={stack} tools={tools} />
         </div>
         <SocialLinks />
-        <div class="hidden shrink-0 lg:mr-4 lg:flex lg:h-96 lg:w-[36rem]">
+        <div class="hidden shrink-0 lg:mr-4 lg:flex lg:h-96 lg:w-xl">
           <img
             src="/ferris-ascii.svg"
             alt="ASCII art of Ferris, the Rust mascot"
@@ -135,7 +135,9 @@ const { Content: Extended } = await render(aboutExtended);
             name="shield-alert"
             class="mx-auto h-12 w-12 text-tui-red sm:h-14 sm:w-14"
           />
-          <p class="text-sm font-bold uppercase tracking-[0.35em] text-tui-muted sm:text-base">
+          <p
+            class="text-sm font-bold uppercase tracking-[0.35em] text-tui-muted sm:text-base"
+          >
             Click to decrypt
           </p>
         </div>

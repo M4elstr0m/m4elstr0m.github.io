@@ -1,0 +1,29 @@
+---
+import Layout from '../layouts/Layout.astro';
+import TerminalPanel from '../components/TerminalPanel.astro';
+import Button from '../components/Button.astro';
+---
+
+<Layout title="M4elstr0m: 404" description="Page not found.">
+  <main class="flex min-h-[calc(100vh-5rem)] items-center justify-center px-4 sm:px-8">
+    <TerminalPanel
+      label="error"
+      labelColor="red"
+      class="w-full max-w-xl"
+      bodyClass="flex flex-col items-center gap-6 py-12 text-center"
+    >
+      <p class="flex flex-wrap items-center justify-center gap-2 text-sm text-tui-muted">
+        <span class="text-tui-green">$</span>
+        <span>cat ./requested-page</span>
+      </p>
+      <p class="text-sm text-tui-red">cat: ./requested-page: No such file or directory</p>
+      <h1 class="text-6xl font-bold tracking-tight text-tui-text">404</h1>
+      <p class="text-tui-muted">This page doesn't exist, or it was moved.</p>
+      <div class="flex flex-wrap justify-center gap-3 pt-2">
+        <Button href="/">home</Button>
+        <Button href="/about">about</Button>
+        <Button href="/projects">projects</Button>
+      </div>
+    </TerminalPanel>
+  </main>
+</Layout>

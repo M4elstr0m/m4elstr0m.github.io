@@ -4,6 +4,7 @@ summary: A CLI & TUI tool that checks simultaneously if a phone number is regist
 stack: [Go, OSINT, CLI, TUI]
 cover: ./cover.png
 coverGif: /projects/gophoner-cover.gif
+icon: /projects/gophoner-icon.svg
 repo: https://github.com/M4elstr0m/gophoner
 featured: true
 displayStars: true

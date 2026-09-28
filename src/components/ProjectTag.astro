@@ -1,28 +1,27 @@
 ---
+import { getEntry } from 'astro:content';
 import Icon from './Icon.astro';
 import { findIcon } from '../lib/find-icon';
-import { categorizeTag, tagColorClasses } from '../lib/categorize-tag';
-
-interface Categories {
-  interests: string[];
-  stack: string[];
-  tools: string[];
-}
+import { getTagColor, tagColorClasses } from '../lib/categorize-tag';
 
 interface Props {
   tech: string;
-  categories: Categories;
 }
 
-const { tech, categories } = Astro.props;
+const { tech } = Astro.props;
 const icon = findIcon(tech);
+
+const tagsEntry = await getEntry('pages', 'tags');
+const colorMap = Object.fromEntries(
+  (tagsEntry?.data.tags ?? []).map((t) => [t.tag.toLowerCase(), t.color]),
+);
 ---
 
 <li
   data-tag={tech.toLowerCase()}
   class:list={[
     'flex items-center gap-1.5 border border-tui-border px-2 py-0.5 text-xs uppercase tracking-wider transition-all duration-200 hover:-translate-y-0.5',
-    tagColorClasses[categorizeTag(tech, categories)],
+    tagColorClasses[getTagColor(tech, colorMap)],
   ]}
 >
   {icon && <Icon icon={icon} class="h-3 w-3 shrink-0" />}
