@@ -1,8 +1,9 @@
 ---
-import { ClientRouter } from 'astro:transitions';
-import BaseHead from '../components/BaseHead.astro';
-import Navbar from '../components/Navbar.astro';
-import '../styles/global.css';
+import { ClientRouter } from "astro:transitions";
+import { getEntry } from "astro:content";
+import BaseHead from "../components/BaseHead.astro";
+import Navbar from "../components/Navbar.astro";
+import "../styles/global.css";
 
 interface Props {
   title: string;
@@ -10,6 +11,14 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
+
+const tooltipsEntry = await getEntry("pages", "tooltips");
+const tooltipsMap = Object.fromEntries(
+  (tooltipsEntry?.data.tooltips ?? []).map((t) => [
+    t.tag.toLowerCase(),
+    t.description,
+  ]),
+);
 ---
 
 <!doctype html>
@@ -19,11 +28,19 @@ const { title, description } = Astro.props;
     <ClientRouter />
   </head>
   <body class="min-h-screen bg-tui-bg font-mono text-tui-text antialiased">
-    <canvas id="ascii-storm" class="pointer-events-none fixed inset-0 z-40" transition:persist></canvas>
+    <canvas
+      id="ascii-storm"
+      class="pointer-events-none fixed inset-0 z-40"
+      transition:persist></canvas>
     <Navbar />
     <div class="pt-20">
       <slot />
     </div>
+    <script
+      type="application/json"
+      id="tooltip-data"
+      set:html={JSON.stringify(tooltipsMap)}
+    />
   </body>
 </html>
 
@@ -56,35 +73,41 @@ const { title, description } = Astro.props;
   // store is resized, not just once at setup.
   function applyStormCanvasDefaults(ctx: CanvasRenderingContext2D) {
     ctx.font = '11px "JetBrains Mono", monospace';
-    ctx.fillStyle = '#f5f5f5';
+    ctx.fillStyle = "#f5f5f5";
   }
 
   function bindStormCanvas(storm: Storm) {
-    const el = document.getElementById('ascii-storm');
+    const el = document.getElementById("ascii-storm");
     if (el instanceof HTMLCanvasElement && el !== storm.canvas) {
       storm.canvas = el;
-      storm.ctx = el.getContext('2d');
+      storm.ctx = el.getContext("2d");
       el.width = window.innerWidth;
       el.height = window.innerHeight;
       if (storm.ctx) applyStormCanvasDefaults(storm.ctx);
     }
   }
 
-  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    const storm: Storm = window.__asciiStorm ?? { canvas: null, ctx: null, particles: [], lastSpawn: 0, ready: false };
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const storm: Storm = window.__asciiStorm ?? {
+      canvas: null,
+      ctx: null,
+      particles: [],
+      lastSpawn: 0,
+      ready: false,
+    };
     window.__asciiStorm = storm;
 
     bindStormCanvas(storm);
-    document.addEventListener('astro:page-load', () => bindStormCanvas(storm));
+    document.addEventListener("astro:page-load", () => bindStormCanvas(storm));
 
     if (!storm.ready) {
       storm.ready = true;
-      const chars = '#$%&*+-/<>=~^:;.,_|01'.split('');
+      const chars = "#$%&*+-/<>=~^:;.,_|01".split("");
 
       let panelEls: Element[] = [];
       let panelRects: DOMRect[] = [];
       function refreshPanelEls() {
-        panelEls = Array.from(document.querySelectorAll('.bg-tui-panel'));
+        panelEls = Array.from(document.querySelectorAll(".bg-tui-panel"));
         refreshPanelRects();
       }
       // Scroll/resize only need fresh positions, not a re-query of which
@@ -94,20 +117,27 @@ const { title, description } = Astro.props;
         // The carousel tween drives scroll itself and already knows where
         // it's headed - skip the forced layout read on every one of its
         // frames and resync once via the 'carousel-settled' listener below.
-        if (document.documentElement.dataset.carouselAnimating === 'true') return;
+        if (document.documentElement.dataset.carouselAnimating === "true")
+          return;
         panelRects = panelEls.map((el) => el.getBoundingClientRect());
       }
       function isOverPanel(x: number, y: number) {
-        return panelRects.some((rect) => x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom);
+        return panelRects.some(
+          (rect) =>
+            x >= rect.left &&
+            x <= rect.right &&
+            y >= rect.top &&
+            y <= rect.bottom,
+        );
       }
       refreshPanelEls();
-      window.addEventListener('scroll', refreshPanelRects, { passive: true });
-      window.addEventListener('resize', refreshPanelEls);
-      document.addEventListener('astro:page-load', refreshPanelEls);
-      window.addEventListener('carousel-settled', refreshPanelRects);
+      window.addEventListener("scroll", refreshPanelRects, { passive: true });
+      window.addEventListener("resize", refreshPanelEls);
+      document.addEventListener("astro:page-load", refreshPanelEls);
+      window.addEventListener("carousel-settled", refreshPanelRects);
       setInterval(refreshPanelEls, 500);
 
-      window.addEventListener('resize', () => {
+      window.addEventListener("resize", () => {
         if (storm.canvas) {
           storm.canvas.width = window.innerWidth;
           storm.canvas.height = window.innerHeight;
@@ -115,7 +145,7 @@ const { title, description } = Astro.props;
         }
       });
 
-      window.addEventListener('mousemove', (event) => {
+      window.addEventListener("mousemove", (event) => {
         const now = performance.now();
         if (now - storm.lastSpawn < 12) return;
         storm.lastSpawn = now;
@@ -129,14 +159,17 @@ const { title, description } = Astro.props;
             vy: -0.2 - Math.random() * 0.3,
           });
         }
-        if (storm.particles.length > 400) storm.particles.splice(0, storm.particles.length - 400);
+        if (storm.particles.length > 400)
+          storm.particles.splice(0, storm.particles.length - 400);
       });
 
       function frame(now: number) {
         const { canvas, ctx } = storm;
         if (canvas && ctx) {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
-          storm.particles = storm.particles.filter((p) => now - p.born < p.life);
+          storm.particles = storm.particles.filter(
+            (p) => now - p.born < p.life,
+          );
           for (const p of storm.particles) {
             const age = (now - p.born) / p.life;
             p.y += p.vy;
@@ -156,9 +189,11 @@ const { title, description } = Astro.props;
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>';
 
   function markExternalLinks() {
-    for (const link of document.querySelectorAll<HTMLAnchorElement>('a[href^="http"]')) {
+    for (const link of document.querySelectorAll<HTMLAnchorElement>(
+      'a[href^="http"]',
+    )) {
       if (link.dataset.externalMarked) continue;
-      link.dataset.externalMarked = 'true';
+      link.dataset.externalMarked = "true";
 
       let url: URL;
       try {
@@ -168,67 +203,73 @@ const { title, description } = Astro.props;
       }
       if (url.origin === location.origin) continue;
 
-      link.target = '_blank';
-      link.rel = 'noopener noreferrer';
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
 
       // Icon-only links (e.g. social links) are already unambiguously
       // external via their brand icon - a second tiny arrow icon crammed
       // into the same small square just looks cluttered.
-      if (link.hasAttribute('data-no-external-icon')) continue;
+      if (link.hasAttribute("data-no-external-icon")) continue;
 
-      const wrapper = document.createElement('span');
+      const wrapper = document.createElement("span");
       wrapper.innerHTML = EXTERNAL_LINK_SVG;
       const svg = wrapper.firstElementChild;
       if (!(svg instanceof SVGElement)) continue;
 
-      svg.setAttribute('width', '0.75em');
-      svg.setAttribute('height', '0.75em');
-      svg.classList.add('shrink-0');
+      svg.setAttribute("width", "0.75em");
+      svg.setAttribute("height", "0.75em");
+      svg.classList.add("shrink-0");
       const display = getComputedStyle(link).display;
-      if (display !== 'flex' && display !== 'inline-flex') {
-        svg.classList.add('tui-external-icon');
+      if (display !== "flex" && display !== "inline-flex") {
+        svg.classList.add("tui-external-icon");
       }
       link.appendChild(svg);
     }
   }
 
   markExternalLinks();
-  document.addEventListener('astro:page-load', markExternalLinks);
+  document.addEventListener("astro:page-load", markExternalLinks);
 
   function depth(pathname: string) {
-    return pathname.split('/').filter(Boolean).length;
+    return pathname.split("/").filter(Boolean).length;
   }
 
   let pendingContactTransition: string | null = null;
   let pendingMultiHop = false;
 
-  document.addEventListener('astro:before-preparation', (event) => {
+  document.addEventListener("astro:before-preparation", (event) => {
     const fromDepth = depth(event.from.pathname);
     const toDepth = depth(event.to.pathname);
     if (toDepth < fromDepth) {
-      event.direction = 'back';
+      event.direction = "back";
     } else if (toDepth > fromDepth) {
-      event.direction = 'forward';
+      event.direction = "forward";
     }
 
-    if (event.to.pathname === '/' && event.from.pathname !== '/') {
+    if (event.to.pathname === "/" && event.from.pathname !== "/") {
       const section =
-        event.to.hash === '#contact'
-          ? 'contact'
-          : event.from.pathname.startsWith('/about')
-            ? 'about'
-            : event.from.pathname.startsWith('/projects')
-              ? 'projects'
+        event.to.hash === "#contact"
+          ? "contact"
+          : event.from.pathname.startsWith("/about")
+            ? "about"
+            : event.from.pathname.startsWith("/projects")
+              ? "projects"
               : null;
-      if (section) sessionStorage.setItem('landing-section', section);
+      if (section) sessionStorage.setItem("landing-section", section);
     }
 
-    const enteringContact = event.to.pathname === '/' && event.to.hash === '#contact';
-    const leavingContact = document.documentElement.dataset.leavingContact === 'true';
+    const enteringContact =
+      event.to.pathname === "/" && event.to.hash === "#contact";
+    const leavingContact =
+      document.documentElement.dataset.leavingContact === "true";
     delete document.documentElement.dataset.leavingContact;
 
-    pendingContactTransition = enteringContact ? 'up' : leavingContact ? 'down' : null;
-    pendingMultiHop = document.documentElement.dataset.multiHop === 'true';
+    pendingContactTransition = enteringContact
+      ? "up"
+      : leavingContact
+        ? "down"
+        : null;
+    pendingMultiHop = document.documentElement.dataset.multiHop === "true";
     delete document.documentElement.dataset.multiHop;
 
     // document.startViewTransition() captures the "old" snapshot synchronously right
@@ -237,7 +278,8 @@ const { title, description } = Astro.props;
     // in astro:before-swap below (which runs later, inside the update callback, and
     // only covers the "new" side / survives the attribute-wiping swap does).
     if (pendingContactTransition) {
-      document.documentElement.dataset.contactTransition = pendingContactTransition;
+      document.documentElement.dataset.contactTransition =
+        pendingContactTransition;
     } else {
       delete document.documentElement.dataset.contactTransition;
     }
@@ -247,24 +289,25 @@ const { title, description } = Astro.props;
   // discarding anything set on the live document beforehand (see swapRootAttributes
   // in astro/dist/transitions/swap-functions.js) - so these flags must ALSO be written
   // onto the incoming document here to survive into the post-swap live DOM.
-  document.addEventListener('astro:before-swap', (event) => {
+  document.addEventListener("astro:before-swap", (event) => {
     if (pendingContactTransition) {
-      event.newDocument.documentElement.dataset.contactTransition = pendingContactTransition;
+      event.newDocument.documentElement.dataset.contactTransition =
+        pendingContactTransition;
     }
     if (pendingMultiHop) {
-      event.newDocument.documentElement.dataset.multiHop = 'true';
+      event.newDocument.documentElement.dataset.multiHop = "true";
     }
   });
 
-  document.addEventListener('astro:after-swap', () => {
-    if (location.pathname !== '/') return;
-    const section = sessionStorage.getItem('landing-section');
+  document.addEventListener("astro:after-swap", () => {
+    if (location.pathname !== "/") return;
+    const section = sessionStorage.getItem("landing-section");
     if (!section) return;
-    sessionStorage.removeItem('landing-section');
-    document.getElementById(section)?.scrollIntoView({ behavior: 'instant' });
+    sessionStorage.removeItem("landing-section");
+    document.getElementById(section)?.scrollIntoView({ behavior: "instant" });
   });
 
-  document.addEventListener('astro:page-load', () => {
+  document.addEventListener("astro:page-load", () => {
     delete document.documentElement.dataset.contactTransition;
     delete document.documentElement.dataset.multiHop;
   });
@@ -279,7 +322,7 @@ const { title, description } = Astro.props;
   let carouselToken = 0;
   let lastAdvanceTime = 0;
   let carouselAttached = false;
-  let previousSnapType = '';
+  let previousSnapType = "";
 
   function findCarouselIndex() {
     let best = 0;
@@ -307,17 +350,21 @@ const { title, description } = Astro.props;
     // frame budget - which is exactly why this felt less smooth than the
     // native, GPU-composited page-swipe transition. Suppress that work while
     // the tween is running and do one batched sync once it settles instead.
-    document.documentElement.dataset.carouselAnimating = 'true';
+    document.documentElement.dataset.carouselAnimating = "true";
     function step(now: number) {
       if (token !== carouselToken) return;
       const t = Math.min((now - start) / duration, 1);
       const eased = 1 - Math.pow(1 - t, 3);
-      window.scrollTo({ top: startY + delta * eased, left: 0, behavior: 'instant' });
+      window.scrollTo({
+        top: startY + delta * eased,
+        left: 0,
+        behavior: "instant",
+      });
       if (t < 1) {
         requestAnimationFrame(step);
       } else {
         delete document.documentElement.dataset.carouselAnimating;
-        window.dispatchEvent(new Event('carousel-settled'));
+        window.dispatchEvent(new Event("carousel-settled"));
       }
     }
     requestAnimationFrame(step);
@@ -327,7 +374,8 @@ const { title, description } = Astro.props;
     const el = carouselSections[index];
     if (!el) return;
     carouselIndex = index;
-    const targetY = window.scrollY + el.getBoundingClientRect().top - NAVBAR_OFFSET;
+    const targetY =
+      window.scrollY + el.getBoundingClientRect().top - NAVBAR_OFFSET;
     animateCarouselScrollTo(targetY, SCROLL_DURATION_MS);
   }
 
@@ -349,35 +397,39 @@ const { title, description } = Astro.props;
   }
 
   function isPhoneViewport() {
-    return window.matchMedia('(pointer: coarse) and (max-width: 767px)').matches;
+    return window.matchMedia("(pointer: coarse) and (max-width: 767px)")
+      .matches;
   }
 
   function enableCarouselPaging() {
     // Generic: any page can opt in just by giving its snap sections the
     // .snap-start class inside <main> - no per-page id list to keep in sync.
-    carouselSections = Array.from(document.querySelectorAll<HTMLElement>('main .snap-start'));
+    carouselSections = Array.from(
+      document.querySelectorAll<HTMLElement>("main .snap-start"),
+    );
     // Phones get native scroll-snap instead (see global.css) so a section
     // taller than the viewport can be scrolled through normally rather than
     // being force-fit into one wheel-tick-per-section jump.
-    if (carouselSections.length < 2 || carouselAttached || isPhoneViewport()) return;
+    if (carouselSections.length < 2 || carouselAttached || isPhoneViewport())
+      return;
     carouselAttached = true;
     carouselIndex = findCarouselIndex();
     previousSnapType = document.documentElement.style.scrollSnapType;
-    document.documentElement.style.scrollSnapType = 'none';
-    window.addEventListener('wheel', onCarouselWheel, { passive: false });
+    document.documentElement.style.scrollSnapType = "none";
+    window.addEventListener("wheel", onCarouselWheel, { passive: false });
   }
 
   function disableCarouselPaging() {
     if (!carouselAttached) return;
     carouselAttached = false;
     document.documentElement.style.scrollSnapType = previousSnapType;
-    window.removeEventListener('wheel', onCarouselWheel);
+    window.removeEventListener("wheel", onCarouselWheel);
   }
 
   enableCarouselPaging();
 
-  document.addEventListener('astro:before-preparation', disableCarouselPaging);
-  document.addEventListener('astro:page-load', enableCarouselPaging);
+  document.addEventListener("astro:before-preparation", disableCarouselPaging);
+  document.addEventListener("astro:page-load", enableCarouselPaging);
 
   const RUST_BURST_COUNT = 28;
 
@@ -385,22 +437,26 @@ const { title, description } = Astro.props;
     const rect = target.getBoundingClientRect();
     const originX = rect.left + rect.width / 2;
     const originY = rect.top + rect.height / 2;
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     const count = reduceMotion ? 8 : RUST_BURST_COUNT;
 
     for (let i = 0; i < count; i++) {
-      const particle = document.createElement('span');
+      const particle = document.createElement("span");
       particle.textContent = emoji;
-      particle.style.position = 'fixed';
+      particle.style.position = "fixed";
       particle.style.left = `${originX}px`;
       particle.style.top = `${originY}px`;
       particle.style.fontSize = `${14 + Math.random() * 16}px`;
-      particle.style.pointerEvents = 'none';
-      particle.style.zIndex = '9999';
+      particle.style.pointerEvents = "none";
+      particle.style.zIndex = "9999";
       document.body.appendChild(particle);
 
       const angle = Math.random() * Math.PI * 2;
-      const distance = reduceMotion ? 20 + Math.random() * 20 : 80 + Math.random() * 160;
+      const distance = reduceMotion
+        ? 20 + Math.random() * 20
+        : 80 + Math.random() * 160;
       const dx = Math.cos(angle) * distance;
       const dy = Math.sin(angle) * distance;
       const spin = (Math.random() - 0.5) * 720;
@@ -408,37 +464,153 @@ const { title, description } = Astro.props;
 
       const animation = particle.animate(
         [
-          { transform: 'translate(-50%, -50%) scale(0.4) rotate(0deg)', opacity: 1 },
+          {
+            transform: "translate(-50%, -50%) scale(0.4) rotate(0deg)",
+            opacity: 1,
+          },
           {
             transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(1.1) rotate(${spin}deg)`,
             opacity: 0,
           },
         ],
-        { duration, easing: 'cubic-bezier(0.16, 1, 0.3, 1)', fill: 'forwards' },
+        { duration, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "forwards" },
       );
       animation.onfinish = () => particle.remove();
     }
   }
 
   const TAG_EASTER_EGGS: Record<string, string> = {
-    rust: '🦀',
-    go: '🦫',
+    rust: "🦀",
+    go: "🦫",
   };
 
-  document.addEventListener('click', (event) => {
+  document.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof Element)) return;
-    const tagEl = target.closest<HTMLElement>('[data-tag]');
+    const tagEl = target.closest<HTMLElement>("[data-tag]");
     if (!tagEl) return;
-    const emoji = TAG_EASTER_EGGS[tagEl.dataset.tag ?? ''];
+    const emoji = TAG_EASTER_EGGS[tagEl.dataset.tag ?? ""];
     if (!emoji) return;
 
-    const link = tagEl.closest('a');
+    const link = tagEl.closest("a");
     if (link) {
       event.preventDefault();
       event.stopPropagation();
     }
     spawnTagBurst(tagEl, emoji);
   });
-</script>
 
+  const INFO_ICON_SVG =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>';
+  const TOOLTIP_HOVER_DELAY_MS = 150;
+
+  let tagTooltips: Record<string, string> = {};
+  try {
+    tagTooltips = JSON.parse(
+      document.getElementById("tooltip-data")?.textContent ?? "{}",
+    );
+  } catch {
+    tagTooltips = {};
+  }
+
+  function renderTooltipMarkup(text: string) {
+    const escaped = text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+    return escaped.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  }
+
+  let tagTooltipEl: HTMLDivElement | null = null;
+  function getTagTooltipEl() {
+    // Astro's page swap can drop this node if it was created on a previous
+    // page (it isn't part of any rendered template) - recreate it if so,
+    // rather than silently positioning a detached, invisible element.
+    if (!tagTooltipEl || !document.body.contains(tagTooltipEl)) {
+      tagTooltipEl = document.createElement("div");
+      tagTooltipEl.className =
+        "tui-tag-tooltip pointer-events-none fixed z-[100] max-w-xs origin-bottom border bg-tui-panel px-3 py-2 text-xs leading-relaxed text-tui-text opacity-0 shadow-lg transition-[opacity,transform] duration-200 ease-out";
+      document.body.appendChild(tagTooltipEl);
+    }
+    return tagTooltipEl;
+  }
+
+  let tooltipHoverTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function positionTagTooltip(el: HTMLElement, target: HTMLElement) {
+    const margin = 8;
+    const rect = target.getBoundingClientRect();
+    // Collapsed/offset state first, so the "rise" animation has somewhere to
+    // animate from once we flip it to the resting state below.
+    el.style.transform = "translateY(6px) scale(0.92)";
+    el.style.opacity = "0";
+
+    const tooltipRect = el.getBoundingClientRect();
+    let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+    left = Math.max(
+      margin,
+      Math.min(window.innerWidth - tooltipRect.width - margin, left),
+    );
+    const top = Math.max(margin, rect.top - tooltipRect.height - margin);
+
+    el.style.left = `${left}px`;
+    el.style.top = `${top}px`;
+
+    requestAnimationFrame(() => {
+      el.style.opacity = "1";
+      el.style.transform = "translateY(0) scale(1)";
+    });
+  }
+
+  function showTagTooltip(target: HTMLElement) {
+    const tag = target.dataset.tag;
+    if (!tag) return;
+    const el = getTagTooltipEl();
+    const description = tagTooltips[tag];
+
+    if (description) {
+      el.innerHTML = renderTooltipMarkup(description);
+    } else {
+      el.innerHTML = `<span class="mr-1.5 inline-flex h-3.5 w-3.5 shrink-0 -translate-y-0.5 align-middle text-tui-muted">${INFO_ICON_SVG}</span>No tooltip available`;
+    }
+
+    const accent = getComputedStyle(target).color;
+    el.style.borderColor = accent;
+    el.style.boxShadow = `0 0 12px color-mix(in srgb, ${accent} 35%, transparent)`;
+    el.style.setProperty("--tag-tooltip-accent", accent);
+
+    positionTagTooltip(el, target);
+  }
+
+  function hideTagTooltip() {
+    if (!tagTooltipEl) return;
+    tagTooltipEl.style.opacity = "0";
+    tagTooltipEl.style.transform = "translateY(6px) scale(0.92)";
+  }
+
+  document.addEventListener("mouseover", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const tagEl = target.closest<HTMLElement>("[data-tag]");
+    if (!tagEl) return;
+    if (tooltipHoverTimer) clearTimeout(tooltipHoverTimer);
+    tooltipHoverTimer = setTimeout(
+      () => showTagTooltip(tagEl),
+      TOOLTIP_HOVER_DELAY_MS,
+    );
+  });
+
+  document.addEventListener("mouseout", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const tagEl = target.closest<HTMLElement>("[data-tag]");
+    if (!tagEl) return;
+    const related = event.relatedTarget;
+    if (related instanceof Node && tagEl.contains(related)) return;
+    if (tooltipHoverTimer) {
+      clearTimeout(tooltipHoverTimer);
+      tooltipHoverTimer = null;
+    }
+    hideTagTooltip();
+  });
+</script>

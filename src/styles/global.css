@@ -31,9 +31,18 @@ body {
   background-size: 22px 22px;
 }
 
+[data-tag] {
+  cursor: help;
+}
+
 [data-tag="rust"],
 [data-tag="go"] {
   cursor: pointer;
+}
+
+.tui-tag-tooltip strong {
+  color: var(--tag-tooltip-accent, var(--color-tui-gold));
+  font-weight: 700;
 }
 
 .tui-external-icon {

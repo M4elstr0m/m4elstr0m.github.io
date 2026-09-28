@@ -110,13 +110,12 @@ const { Content: Extended } = await render(aboutExtended);
           <AboutBadges interests={interests} stack={stack} tools={tools} />
         </div>
         <SocialLinks />
-        <div
-          class="hidden shrink-0 flex-col items-center justify-center gap-2 border border-dashed border-tui-border text-tui-muted lg:flex lg:h-64 lg:w-64"
-        >
-          <LucideIcon name="image" class="h-10 w-10" />
-          <span class="text-[10px] uppercase tracking-[0.25em]"
-            >image pending</span
-          >
+        <div class="hidden shrink-0 border border-tui-border lg:mr-4 lg:flex lg:h-96 lg:w-[36rem]">
+          <img
+            src="/ferris-ascii.svg"
+            alt="ASCII art of Ferris, the Rust mascot"
+            class="h-full w-full object-contain"
+          />
         </div>
       </TerminalPanel>
       <ScrollHint target="#about-classified" />
