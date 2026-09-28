@@ -5,10 +5,6 @@ export interface SimpleIconData {
   title: string;
 }
 
-// Tags whose slug happens to collide with an unrelated real brand's
-// simple-icons entry, e.g. "TUI" -> TUI Group, the travel company. Excluded
-// so the wrong logo doesn't show up next to a tag that isn't referring to
-// that brand at all; falls back to plain text like any other unmatched tag.
 const ICON_LOOKUP_EXCLUSIONS = new Set(['tui']);
 
 export function findIcon(label: string): SimpleIconData | undefined {

@@ -1,7 +1,7 @@
 ---
 title: Tarkov Map Tracker
 summary: A desktop app that tracks your live in-game position on Escape From Tarkov maps in real time, using in-game screenshots.
-stack: [Go, Wails, Gaming, Reverse Engineering]
+stack: [Go, Wails, Gaming, Reverse Engineering, GUI]
 cover: ./cover.png
 repo: https://github.com/M4elstr0m/TarkovMapTracker
 featured: true

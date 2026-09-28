@@ -75,9 +75,6 @@ const tooltipsMap = Object.fromEntries(
     }
   }
 
-  // Resizing a canvas's width/height resets its 2D context state (fillStyle,
-  // font) to defaults, so this must be re-applied every time the backing
-  // store is resized, not just once at setup.
   function applyStormCanvasDefaults(ctx: CanvasRenderingContext2D) {
     ctx.font = '11px "JetBrains Mono", monospace';
     ctx.fillStyle = "#f5f5f5";
@@ -117,13 +114,7 @@ const tooltipsMap = Object.fromEntries(
         panelEls = Array.from(document.querySelectorAll(".bg-tui-panel"));
         refreshPanelRects();
       }
-      // Scroll/resize only need fresh positions, not a re-query of which
-      // elements are panels - querySelectorAll on every scroll tick during
-      // the JS-driven swipe animation was the actual cost, not the rects.
       function refreshPanelRects() {
-        // The carousel tween drives scroll itself and already knows where
-        // it's headed - skip the forced layout read on every one of its
-        // frames and resync once via the 'carousel-settled' listener below.
         if (document.documentElement.dataset.carouselAnimating === "true")
           return;
         panelRects = panelEls.map((el) => el.getBoundingClientRect());
@@ -213,9 +204,6 @@ const tooltipsMap = Object.fromEntries(
       link.target = "_blank";
       link.rel = "noopener noreferrer";
 
-      // Icon-only links (e.g. social links) are already unambiguously
-      // external via their brand icon - a second tiny arrow icon crammed
-      // into the same small square just looks cluttered.
       if (link.hasAttribute("data-no-external-icon")) continue;
 
       const wrapper = document.createElement("span");
@@ -239,9 +227,6 @@ const tooltipsMap = Object.fromEntries(
 
   function updateCopyrightYear() {
     const el = document.getElementById("copyright-year");
-    // Corrects the build-time year client-side, so the footer stays
-    // accurate even if the static site isn't rebuilt across a year
-    // boundary - a visitor's browser always knows the real current date.
     if (el) el.textContent = String(new Date().getFullYear());
   }
 
@@ -290,11 +275,6 @@ const tooltipsMap = Object.fromEntries(
     pendingMultiHop = document.documentElement.dataset.multiHop === "true";
     delete document.documentElement.dataset.multiHop;
 
-    // document.startViewTransition() captures the "old" snapshot synchronously right
-    // after this event finishes, using whatever CSS state exists at that instant - so
-    // the flag must already be on the CURRENT document here, not only on newDocument
-    // in astro:before-swap below (which runs later, inside the update callback, and
-    // only covers the "new" side / survives the attribute-wiping swap does).
     if (pendingContactTransition) {
       document.documentElement.dataset.contactTransition =
         pendingContactTransition;
@@ -303,10 +283,6 @@ const tooltipsMap = Object.fromEntries(
     }
   });
 
-  // Astro's swap rebuilds <html>'s attributes from event.newDocument.documentElement,
-  // discarding anything set on the live document beforehand (see swapRootAttributes
-  // in astro/dist/transitions/swap-functions.js) - so these flags must ALSO be written
-  // onto the incoming document here to survive into the post-swap live DOM.
   document.addEventListener("astro:before-swap", (event) => {
     if (pendingContactTransition) {
       event.newDocument.documentElement.dataset.contactTransition =
@@ -361,13 +337,6 @@ const tooltipsMap = Object.fromEntries(
     const delta = targetY - startY;
     if (Math.abs(delta) < 1) return;
     const start = performance.now();
-    // Scroll listeners elsewhere (storm panel-dimming, navbar active-tab
-    // tracking) force a synchronous layout read on every scroll event via
-    // getBoundingClientRect. During this JS-driven tween that fires on every
-    // animation frame, competing with the scrollTo call itself for the same
-    // frame budget - which is exactly why this felt less smooth than the
-    // native, GPU-composited page-swipe transition. Suppress that work while
-    // the tween is running and do one batched sync once it settles instead.
     document.documentElement.dataset.carouselAnimating = "true";
     function step(now: number) {
       if (token !== carouselToken) return;
@@ -420,14 +389,9 @@ const tooltipsMap = Object.fromEntries(
   }
 
   function enableCarouselPaging() {
-    // Generic: any page can opt in just by giving its snap sections the
-    // .snap-start class inside <main> - no per-page id list to keep in sync.
     carouselSections = Array.from(
       document.querySelectorAll<HTMLElement>("main .snap-start"),
     );
-    // Phones get native scroll-snap instead (see global.css) so a section
-    // taller than the viewport can be scrolled through normally rather than
-    // being force-fit into one wheel-tick-per-section jump.
     if (carouselSections.length < 2 || carouselAttached || isPhoneViewport())
       return;
     carouselAttached = true;
@@ -541,9 +505,6 @@ const tooltipsMap = Object.fromEntries(
 
   let tagTooltipEl: HTMLDivElement | null = null;
   function getTagTooltipEl() {
-    // Astro's page swap can drop this node if it was created on a previous
-    // page (it isn't part of any rendered template) - recreate it if so,
-    // rather than silently positioning a detached, invisible element.
     if (!tagTooltipEl || !document.body.contains(tagTooltipEl)) {
       tagTooltipEl = document.createElement("div");
       tagTooltipEl.className =
@@ -558,8 +519,6 @@ const tooltipsMap = Object.fromEntries(
   function positionTagTooltip(el: HTMLElement, target: HTMLElement) {
     const margin = 8;
     const rect = target.getBoundingClientRect();
-    // Collapsed/offset state first, so the "rise" animation has somewhere to
-    // animate from once we flip it to the resting state below.
     el.style.transform = "translateY(6px) scale(0.92)";
     el.style.opacity = "0";
 

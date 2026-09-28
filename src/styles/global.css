@@ -10,11 +10,6 @@ html {
   scrollbar-gutter: stable;
 }
 
-/* Phones only (touch + narrow, excludes tablets/desktop): the JS wheel-driven
-   carousel is skipped entirely (see enableCarouselPaging in Layout.astro) and
-   native scroll-snap takes over instead. "proximity" (not "mandatory") lets a
-   section taller than the viewport scroll freely within itself; it only pulls
-   to the next section boundary once you scroll near it. */
 @media (pointer: coarse) and (max-width: 767px) {
   html {
     scroll-snap-type: y proximity;

@@ -168,8 +168,6 @@ const isHomeActive = path === '/';
 
   function refreshNavLinkEls() {
     navLinkEls = Array.from(document.querySelectorAll<HTMLElement>('[data-nav-link]'));
-    // DOM is fresh (new page swap) - force the next setActiveNav call to
-    // reapply even if it computes the same key as before the swap.
     lastActiveNavKey = null;
   }
 
@@ -182,9 +180,6 @@ const isHomeActive = path === '/';
   }
 
   function updateHomeNavActive() {
-    // The carousel tween drives scroll itself and already knows the target
-    // section - skip the forced layout read on every one of its animation
-    // frames and resync once it settles instead (see 'carousel-settled').
     if (document.documentElement.dataset.carouselAnimating === 'true') return;
     let best = 'about';
     let bestDist = Infinity;

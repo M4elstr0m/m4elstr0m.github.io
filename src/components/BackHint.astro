@@ -56,9 +56,6 @@ const { target, label = 'home' } = Astro.props;
         const href = link.getAttribute('href');
         if (!href) return;
 
-        // Reverse of the home carousel's "scroll then navigate" hop: land on
-        // this page's own first section before swiping away, so the swipe
-        // transition always starts from a consistent, top-of-page position.
         const firstSection = document.querySelector<HTMLElement>('main .snap-start');
         if (!firstSection) return;
 

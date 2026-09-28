@@ -25,11 +25,6 @@ const projects = defineCollection({
       displayStars: z.boolean().default(false),
       startYear: z.number(),
       endYear: z.number().optional(),
-      // Lowest rank sorts first (podium-style: 1 is 1st place; 0 is the best
-      // possible rank). Unranked entries sort after every ranked one,
-      // regardless of rank value. Ties (including among unranked entries)
-      // break by star count, then alphabetically by title
-      // - see sortProjectsByRank in src/lib/sort-projects.ts.
       rank: z.number().optional(),
     }),
 });
