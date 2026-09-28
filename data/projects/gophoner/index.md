@@ -28,4 +28,5 @@ Users can download it for every platform, from various package managers.
 
 ## Links
 
+- [Latest release](https://github.com/M4elstr0m/gophoner/releases/latest)
 - [Source & documentation](https://github.com/M4elstr0m/gophoner)
