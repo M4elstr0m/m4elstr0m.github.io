@@ -1,7 +1,7 @@
 ---
 title: gophoner
 summary: A CLI & TUI tool that checks, in parallel, whether a phone number is registered across popular apps and websites, with no prerequisite and no notification sent to the target.
-stack: [Go, OSINT, CLI]
+stack: [Go, OSINT, CLI, TUI]
 cover: ./cover.png
 coverGif: /projects/gophoner-cover.gif
 repo: https://github.com/M4elstr0m/gophoner
