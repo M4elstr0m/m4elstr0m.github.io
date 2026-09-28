@@ -1,0 +1,225 @@
+---
+import LucideIcon from './LucideIcon.astro';
+
+const links = [
+  { href: '/about', label: 'about', section: 'about', key: 'about' },
+  { href: '/projects', label: 'projects', section: 'projects', key: 'projects' },
+  { href: '/#contact', label: 'contact', section: null, key: 'contact' },
+];
+
+const path = Astro.url.pathname;
+const isRouteActive = (href: string) => href !== '/#contact' && (path === href || path.startsWith(`${href}/`));
+const isHomeActive = path === '/';
+---
+
+<nav
+  class="fixed left-1/2 top-5 z-50 -translate-x-1/2 border border-tui-border bg-tui-panel"
+  transition:name="navbar"
+  transition:animate="none"
+>
+  <ul class="flex items-stretch divide-x divide-tui-border text-[10px] uppercase tracking-[0.15em] sm:text-xs sm:tracking-[0.3em]">
+    <li>
+      <a
+        href="/"
+        aria-label="Home"
+        data-nav-link="home"
+        class:list={['tui-nav-home flex h-full items-center px-3 transition-colors sm:px-4', isHomeActive && 'is-active']}
+      >
+        <LucideIcon name="house" class="h-4 w-4" />
+      </a>
+    </li>
+    {
+      links.map((link) => (
+        <li>
+          <a
+            href={link.href}
+            data-carousel-section={link.section}
+            data-nav-link={link.key}
+            class:list={[
+              'tui-nav-link flex h-full items-center px-3 py-2.5 transition-colors sm:px-5',
+              isRouteActive(link.href) && 'is-active',
+            ]}
+          >
+            {link.label}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style>
+  .tui-nav-home {
+    color: var(--color-tui-muted);
+  }
+
+  .tui-nav-link {
+    color: var(--color-tui-text);
+  }
+
+  .tui-nav-home:hover,
+  .tui-nav-link:hover {
+    background-color: var(--color-tui-gold);
+    color: var(--color-tui-panel);
+  }
+
+  .tui-nav-home.is-active,
+  .tui-nav-link.is-active {
+    background-color: var(--color-tui-gold);
+    color: var(--color-tui-panel);
+    font-weight: 700;
+  }
+</style>
+
+<script>
+  import { navigate } from 'astro:transitions/client';
+
+  const NAVBAR_OFFSET = 80;
+  const BASE_SWIPE_MS = 400;
+
+  function isSectionAligned(id: string) {
+    const el = document.getElementById(id);
+    return el ? Math.abs(el.getBoundingClientRect().top - NAVBAR_OFFSET) < 10 : false;
+  }
+
+  function animatedScrollTo(targetY: number, duration: number): Promise<void> {
+    return new Promise((resolve) => {
+      const startY = window.scrollY;
+      const delta = targetY - startY;
+      if (Math.abs(delta) < 1) {
+        resolve();
+        return;
+      }
+      const start = performance.now();
+      function step(now: number) {
+        const t = Math.min((now - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - t, 3);
+        window.scrollTo({ top: startY + delta * eased, left: 0, behavior: 'instant' });
+        if (t < 1) {
+          requestAnimationFrame(step);
+        } else {
+          resolve();
+        }
+      }
+      requestAnimationFrame(step);
+    });
+  }
+
+  function bindNavbar() {
+    const homeLink = document.querySelector<HTMLAnchorElement>('a[aria-label="Home"]');
+    if (homeLink && !homeLink.dataset.bound) {
+      homeLink.dataset.bound = 'true';
+      homeLink.addEventListener('click', (event) => {
+        if (location.pathname === '/' && isSectionAligned('about')) {
+          event.preventDefault();
+        }
+      });
+    }
+
+    for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-carousel-section]')) {
+      if (link.dataset.bound) continue;
+      link.dataset.bound = 'true';
+
+      link.addEventListener('click', (event) => {
+        const href = link.getAttribute('href');
+        if (href && location.pathname === href) {
+          event.preventDefault();
+          return;
+        }
+
+        const sectionId = link.dataset.carouselSection;
+        if (!sectionId || location.pathname !== '/') return;
+
+        const section = document.getElementById(sectionId);
+        if (!section) return;
+
+        if (isSectionAligned('contact')) {
+          document.documentElement.dataset.leavingContact = 'true';
+        }
+
+        const isAligned = isSectionAligned(sectionId);
+        if (isAligned) return;
+
+        event.preventDefault();
+        if (!href) return;
+
+        const hopDuration = BASE_SWIPE_MS / 2;
+        document.documentElement.dataset.multiHop = 'true';
+
+        const targetY = window.scrollY + section.getBoundingClientRect().top - NAVBAR_OFFSET;
+        const previousSnapType = document.documentElement.style.scrollSnapType;
+        document.documentElement.style.scrollSnapType = 'none';
+        animatedScrollTo(targetY, hopDuration).then(() => {
+          document.documentElement.style.scrollSnapType = previousSnapType;
+          navigate(href);
+        });
+      });
+    }
+  }
+
+  const HOME_SECTION_TO_NAV_KEY: Record<string, string> = {
+    about: 'home',
+    projects: 'home',
+    contact: 'contact',
+  };
+
+  let navLinkEls: HTMLElement[] = [];
+  let lastActiveNavKey: string | null = null;
+
+  function refreshNavLinkEls() {
+    navLinkEls = Array.from(document.querySelectorAll<HTMLElement>('[data-nav-link]'));
+    lastActiveNavKey = null;
+  }
+
+  function setActiveNav(key: string) {
+    if (key === lastActiveNavKey) return;
+    lastActiveNavKey = key;
+    for (const el of navLinkEls) {
+      el.classList.toggle('is-active', el.dataset.navLink === key);
+    }
+  }
+
+  function updateHomeNavActive() {
+    if (document.documentElement.dataset.carouselAnimating === 'true') return;
+    let best = 'about';
+    let bestDist = Infinity;
+    for (const id of Object.keys(HOME_SECTION_TO_NAV_KEY)) {
+      const el = document.getElementById(id);
+      if (!el) continue;
+      const dist = Math.abs(el.getBoundingClientRect().top - NAVBAR_OFFSET);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = id;
+      }
+    }
+    setActiveNav(HOME_SECTION_TO_NAV_KEY[best]);
+  }
+
+  let homeNavScrollBound = false;
+
+  function bindHomeNavTracking() {
+    if (location.pathname !== '/') {
+      if (homeNavScrollBound) {
+        window.removeEventListener('scroll', updateHomeNavActive);
+        window.removeEventListener('carousel-settled', updateHomeNavActive);
+        homeNavScrollBound = false;
+      }
+      return;
+    }
+    updateHomeNavActive();
+    if (!homeNavScrollBound) {
+      homeNavScrollBound = true;
+      window.addEventListener('scroll', updateHomeNavActive, { passive: true });
+      window.addEventListener('carousel-settled', updateHomeNavActive);
+    }
+  }
+
+  refreshNavLinkEls();
+  bindNavbar();
+  bindHomeNavTracking();
+  document.addEventListener('astro:page-load', () => {
+    refreshNavLinkEls();
+    bindNavbar();
+    bindHomeNavTracking();
+  });
+</script>

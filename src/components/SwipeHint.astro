@@ -1,0 +1,17 @@
+---
+import LucideIcon from './LucideIcon.astro';
+
+interface Props {
+  target: string;
+}
+
+const { target } = Astro.props;
+---
+
+<a
+  href={target}
+  class="absolute inset-y-0 right-4 z-10 hidden flex-col items-center justify-center gap-1 text-tui-muted transition-colors hover:text-tui-gold sm:flex"
+>
+  <LucideIcon name="chevron-right" class="h-8 w-8 animate-pulse" />
+  <span class="text-[10px] uppercase tracking-[0.2em]">more</span>
+</a>

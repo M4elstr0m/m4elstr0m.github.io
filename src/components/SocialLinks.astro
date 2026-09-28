@@ -1,0 +1,31 @@
+---
+import { getEntry } from 'astro:content';
+import { findIcon } from '../lib/find-icon';
+import Icon from './Icon.astro';
+
+const socialsEntry = await getEntry('pages', 'socials');
+const socials = (socialsEntry?.data.socials ?? []).flatMap((social) => {
+  const icon = findIcon(social.platform);
+  return icon ? [{ ...social, icon }] : [];
+});
+---
+
+{
+  socials.length > 0 && (
+    <div
+      class="absolute right-6 top-6 z-10 grid max-w-[40vw] gap-1.5 sm:right-8 sm:top-8 sm:max-w-[12rem]"
+      style={`grid-template-columns: repeat(${socials.length}, minmax(0, 3rem))`}
+    >
+      {socials.map((social) => (
+        <a
+          href={social.url}
+          data-no-external-icon
+          aria-label={social.platform}
+          class="flex aspect-square items-center justify-center text-tui-muted transition-colors hover:text-tui-gold"
+        >
+          <Icon icon={social.icon} class="h-full w-full" />
+        </a>
+      ))}
+    </div>
+  )
+}

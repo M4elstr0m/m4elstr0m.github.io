@@ -1,0 +1,14 @@
+---
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+interface Props {
+  name: string;
+  class?: string;
+}
+
+const { name, class: className } = Astro.props;
+const art = readFileSync(join(process.cwd(), 'data/ascii', `${name}.txt`), 'utf-8');
+---
+
+<pre class:list={['overflow-hidden font-mono leading-none whitespace-pre text-tui-text', className]}>{art}</pre>

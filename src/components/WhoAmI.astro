@@ -1,0 +1,35 @@
+---
+interface Props {
+  class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<p class:list={['flex items-center gap-2 text-sm text-tui-muted', className]}>
+  <span class="text-tui-green">$</span>
+  <span data-typewriter="whoami"></span>
+  <span class="tui-cursor inline-block h-[1em] w-[0.55ch] bg-tui-gold align-middle"></span>
+</p>
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    for (const el of document.querySelectorAll<HTMLElement>('[data-typewriter]:not([data-typed])')) {
+      el.dataset.typed = 'true';
+      const text = el.dataset.typewriter ?? '';
+      if (reduceMotion) {
+        el.textContent = text;
+        continue;
+      }
+
+      let i = 0;
+      const id = setInterval(() => {
+        el.textContent = text.slice(0, i + 1);
+        i += 1;
+        if (i >= text.length) clearInterval(id);
+      }, 110);
+    }
+  });
+</script>

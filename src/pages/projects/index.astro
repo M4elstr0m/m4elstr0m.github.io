@@ -1,0 +1,48 @@
+---
+import { slide } from 'astro:transitions';
+import { getCollection, getEntry } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import TerminalPanel from '../../components/TerminalPanel.astro';
+import ProjectGrid from '../../components/ProjectGrid';
+import BackHint from '../../components/BackHint.astro';
+import { findIcon } from '../../lib/find-icon';
+import { getTagColor, tagColorClasses } from '../../lib/categorize-tag';
+import { sortProjectsByRank } from '../../lib/sort-projects';
+
+const tagsEntry = await getEntry('pages', 'tags');
+const tagColorMap = Object.fromEntries(
+  (tagsEntry?.data.tags ?? []).map((t) => [t.tag.toLowerCase(), t.color]),
+);
+
+const entries = await getCollection('projects');
+const sorted = await sortProjectsByRank(entries);
+const projects = sorted.map((entry) => ({
+  slug: entry.id,
+  title: entry.data.title,
+  summary: entry.data.summary,
+  stack: entry.data.stack.map((tech) => ({
+    label: tech,
+    icon: findIcon(tech),
+    colorClass: tagColorClasses[getTagColor(tech, tagColorMap)],
+  })),
+  cover: entry.data.coverGif ?? entry.data.cover.src,
+  projectIcon: entry.data.icon ?? null,
+  private: entry.data.private,
+  stars: entry.stars,
+  startYear: entry.data.startYear,
+  endYear: entry.data.endYear ?? null,
+}));
+---
+
+<Layout title="M4elstr0m: Projects" description="Full list of projects by M4elstr0m, spanning Go, Rust, OSINT, and offensive security tooling.">
+  <main
+    class="px-4 py-12 sm:px-8"
+    transition:name="projects-page"
+    transition:animate={slide({ duration: '0.4s' })}
+  >
+    <BackHint target="/" />
+    <TerminalPanel label="projects" class="w-full">
+      <ProjectGrid client:load projects={projects} />
+    </TerminalPanel>
+  </main>
+</Layout>

@@ -1,0 +1,150 @@
+---
+import { slide } from "astro:transitions";
+import { getEntry, render } from "astro:content";
+import Layout from "../layouts/Layout.astro";
+import TerminalPanel from "../components/TerminalPanel.astro";
+import AboutBadges from "../components/AboutBadges.astro";
+import WhoAmI from "../components/WhoAmI.astro";
+import ScrollHint from "../components/ScrollHint.astro";
+import LucideIcon from "../components/LucideIcon.astro";
+import SocialLinks from "../components/SocialLinks.astro";
+import BackHint from "../components/BackHint.astro";
+import RedactedLine from "../components/RedactedLine.astro";
+
+const CLASSIFIED_LINES = [
+  "THE BREACH IS HUMAN",
+  "THE LEAK IS HUMAN",
+  "THE HACK IS HUMAN",
+];
+
+const about = await getEntry("pages", "about");
+if (!about) throw new Error("Missing data/pages/about.md");
+const { Content: Intro } = await render(about);
+const { interests, stack, tools, languages } = about.data;
+
+const aboutExtended = await getEntry("pages", "about-extended");
+if (!aboutExtended) throw new Error("Missing data/pages/about-extended.md");
+const { Content: Extended } = await render(aboutExtended);
+---
+
+<Layout
+  title="M4elstr0m: About"
+  description="More about M4elstr0m, a security-minded developer working primarily in Go and Rust."
+>
+  <main>
+    <BackHint target="/" />
+    <section
+      id="about-cover"
+      class="relative flex min-h-[calc(100vh-5rem)] snap-start scroll-mt-20 items-start px-4 pb-16 pt-8 sm:px-8"
+    >
+      <div
+        class="w-full"
+        transition:name="about-page"
+        transition:animate={slide({ duration: "0.4s" })}
+      >
+        <TerminalPanel
+          label="about"
+          class="w-full min-h-[70vh]"
+          bodyClass="flex flex-col items-center justify-center gap-[clamp(1rem,3vh,2rem)] text-center"
+        >
+          <img
+            src="https://github.com/M4elstr0m.png?size=600"
+            alt="M4elstr0m"
+            class="h-[clamp(7rem,20vh,15rem)] w-[clamp(7rem,20vh,15rem)] rounded-full border border-tui-border object-cover"
+          />
+          <WhoAmI class="justify-center" />
+          <h1
+            class="text-[clamp(1.75rem,7vh,4.5rem)] font-bold tracking-tight text-tui-text"
+          >
+            M4elstr0m
+          </h1>
+        </TerminalPanel>
+      </div>
+      <ScrollHint target="#about-details" />
+    </section>
+    <section
+      id="about-details"
+      class="relative flex min-h-[calc(100vh-5rem)] snap-start scroll-mt-20 items-center px-4 py-12 sm:px-8"
+    >
+      <TerminalPanel
+        label="whoami"
+        class="w-full min-h-[80vh]"
+        bodyClass="flex flex-col gap-10 py-[clamp(1.5rem,4vh,2.5rem)] lg:flex-row lg:items-center"
+      >
+        <div class="flex-1 space-y-[clamp(1.25rem,3vh,2.5rem)]">
+          <WhoAmI />
+          <div
+            class="prose prose-invert max-w-2xl text-lg leading-relaxed sm:text-xl prose-p:text-tui-text prose-strong:text-tui-cyan"
+          >
+            <Intro />
+          </div>
+          <div
+            class="prose prose-invert max-w-2xl text-base leading-relaxed prose-p:text-tui-muted"
+          >
+            <Extended />
+          </div>
+          {
+            languages && languages.length > 0 && (
+              <div class="space-y-1 text-sm">
+                <p class="flex items-center gap-2 text-tui-muted">
+                  <span class="text-tui-green">$</span>
+                  <span>locale --list</span>
+                </p>
+                <p class="pl-4 text-tui-text">
+                  <span class="text-tui-text/60">[</span>
+                  {languages.map((lang, i) => (
+                    <Fragment>
+                      {i > 0 && <span class="text-tui-text/60">, </span>}
+                      <span class="text-tui-text/60">{"{"}</span>
+                      <span class="font-black">{lang.name}</span>
+                      <span class="text-tui-text/60">, </span>
+                      <span>{lang.level}</span>
+                      <span class="text-tui-text/60">{"}"}</span>
+                    </Fragment>
+                  ))}
+                  <span class="text-tui-text/60">]</span>
+                </p>
+              </div>
+            )
+          }
+          <AboutBadges interests={interests} stack={stack} tools={tools} />
+        </div>
+        <SocialLinks />
+        <div class="hidden shrink-0 lg:mr-4 lg:flex lg:h-96 lg:w-xl">
+          <img
+            src="/ferris-ascii.svg"
+            alt="ASCII art of Ferris, the Rust mascot"
+            class="h-full w-full object-contain"
+          />
+        </div>
+      </TerminalPanel>
+      <ScrollHint target="#about-classified" />
+    </section>
+    <section
+      id="about-classified"
+      class="relative flex min-h-[calc(100vh-5rem)] snap-start scroll-mt-20 items-center px-4 py-12 sm:px-8"
+    >
+      <TerminalPanel
+        label="classified"
+        labelColor="red"
+        class="w-full min-h-[70vh]"
+        bodyClass="flex flex-col items-center justify-center gap-8 text-center"
+      >
+        <div class="space-y-3">
+          <LucideIcon
+            name="shield-alert"
+            class="mx-auto h-12 w-12 text-tui-red sm:h-14 sm:w-14"
+          />
+          <p
+            class="text-sm font-bold uppercase tracking-[0.35em] text-tui-muted sm:text-base"
+          >
+            Click to decrypt
+          </p>
+        </div>
+        <div class="flex w-full max-w-xl flex-col gap-4">
+          {CLASSIFIED_LINES.map((line) => <RedactedLine text={line} />)}
+        </div>
+      </TerminalPanel>
+    </section>
+  </main>
+</Layout>

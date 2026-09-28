@@ -1,0 +1,20 @@
+---
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+interface Props {
+  name: string;
+  class?: string;
+}
+
+const { name, class: className } = Astro.props;
+
+const raw = readFileSync(join(process.cwd(), 'node_modules/lucide-static/icons', `${name}.svg`), 'utf-8');
+const svg = raw
+  .replace(/<!--.*?-->\s*/s, '')
+  .replace(/\swidth="[^"]*"/, '')
+  .replace(/\sheight="[^"]*"/, '')
+  .replace('<svg', `<svg class="${className ?? ''}"`);
+---
+
+<Fragment set:html={svg} />

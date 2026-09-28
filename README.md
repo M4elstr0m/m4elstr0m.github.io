@@ -32,3 +32,7 @@ just dev-stop
 ## Deployment
 
 Every push to `main` triggers `.github/workflows/deploy.yml`, which builds the site with `withastro/action` and deploys it to GitHub Pages. There is no manual build or deploy step.
+
+## Roadmap
+
+- [ ] French localization (i18n)

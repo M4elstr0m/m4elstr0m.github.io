@@ -1,0 +1,24 @@
+---
+import TerminalPanel from './TerminalPanel.astro';
+import LucideIcon from './LucideIcon.astro';
+---
+
+<a href="/projects" class="group flex h-full flex-col">
+  <TerminalPanel
+    label="more"
+    labelColor="cyan"
+    class="flex-1 transition-colors group-hover:border-tui-cyan"
+    bodyClass="flex flex-col p-0"
+  >
+    <div class="flex aspect-video w-full items-center justify-center border-b border-tui-border bg-tui-bg/40">
+      <LucideIcon
+        name="arrow-right"
+        class="h-10 w-10 text-tui-muted transition-colors group-hover:text-tui-cyan"
+      />
+    </div>
+    <div class="flex flex-1 flex-col items-center justify-center gap-2 p-5 text-center">
+      <h3 class="text-lg font-semibold text-tui-text transition-colors group-hover:text-tui-cyan">See more</h3>
+      <p class="text-sm text-tui-muted">Browse the full list of projects</p>
+    </div>
+  </TerminalPanel>
+</a>

@@ -1,6 +1,9 @@
 ---
-import BaseHead from '../components/BaseHead.astro';
-import '../styles/global.css';
+import { ClientRouter } from "astro:transitions";
+import { getEntry } from "astro:content";
+import BaseHead from "../components/BaseHead.astro";
+import Navbar from "../components/Navbar.astro";
+import "../styles/global.css";
 
 interface Props {
   title: string;
@@ -8,14 +11,613 @@ interface Props {
 }
 
 const { title, description } = Astro.props;
+
+const currentYear = new Date().getFullYear();
+
+const tagsEntry = await getEntry("pages", "tags");
+const tooltipsMap = Object.fromEntries(
+  (tagsEntry?.data.tags ?? []).map((t) => [t.tag.toLowerCase(), t.tooltip]),
+);
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
     <BaseHead title={title} description={description} />
+    <ClientRouter />
   </head>
-  <body class="min-h-screen bg-slate-950 font-mono text-slate-200 antialiased">
-    <slot />
+  <body class="min-h-screen bg-tui-bg font-mono text-tui-text antialiased">
+    <div
+      id="loading-screen"
+      transition:persist
+      class="pointer-events-none fixed inset-0 z-[200] flex items-center justify-center bg-tui-bg"
+    >
+      <p class="flex items-center gap-2 font-mono text-sm uppercase tracking-[0.2em] text-tui-green">
+        <span>$</span>
+        <span>booting m4elstr0m.sh</span>
+        <span class="tui-cursor inline-block h-[1em] w-[0.55ch] bg-tui-gold align-middle"></span>
+      </p>
+    </div>
+    <canvas
+      id="ascii-storm"
+      class="pointer-events-none fixed inset-0 z-40"
+      transition:persist></canvas>
+    <Navbar />
+    <div class="pt-20">
+      <slot />
+    </div>
+    <footer
+      class="fixed bottom-3 right-4 z-30 hidden text-[10px] uppercase tracking-[0.15em] text-tui-muted sm:block"
+    >
+      &copy; <span id="copyright-year">{currentYear}</span> M4elstr0m
+    </footer>
+    <script
+      type="application/json"
+      id="tooltip-data"
+      set:html={JSON.stringify(tooltipsMap)}
+    />
   </body>
 </html>
+
+<script>
+  interface Particle {
+    x: number;
+    y: number;
+    char: string;
+    born: number;
+    life: number;
+    vy: number;
+  }
+
+  interface Storm {
+    canvas: HTMLCanvasElement | null;
+    ctx: CanvasRenderingContext2D | null;
+    particles: Particle[];
+    lastSpawn: number;
+    ready: boolean;
+  }
+
+  declare global {
+    interface Window {
+      __asciiStorm?: Storm;
+    }
+  }
+
+  function applyStormCanvasDefaults(ctx: CanvasRenderingContext2D) {
+    ctx.font = '11px "JetBrains Mono", monospace';
+    ctx.fillStyle = "#f5f5f5";
+  }
+
+  function bindStormCanvas(storm: Storm) {
+    const el = document.getElementById("ascii-storm");
+    if (el instanceof HTMLCanvasElement && el !== storm.canvas) {
+      storm.canvas = el;
+      storm.ctx = el.getContext("2d");
+      el.width = window.innerWidth;
+      el.height = window.innerHeight;
+      if (storm.ctx) applyStormCanvasDefaults(storm.ctx);
+    }
+  }
+
+  if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const storm: Storm = window.__asciiStorm ?? {
+      canvas: null,
+      ctx: null,
+      particles: [],
+      lastSpawn: 0,
+      ready: false,
+    };
+    window.__asciiStorm = storm;
+
+    bindStormCanvas(storm);
+    document.addEventListener("astro:page-load", () => bindStormCanvas(storm));
+
+    if (!storm.ready) {
+      storm.ready = true;
+      const chars = "#$%&*+-/<>=~^:;.,_|01".split("");
+
+      let panelEls: Element[] = [];
+      let panelRects: DOMRect[] = [];
+      function refreshPanelEls() {
+        panelEls = Array.from(document.querySelectorAll(".bg-tui-panel"));
+        refreshPanelRects();
+      }
+      function refreshPanelRects() {
+        if (document.documentElement.dataset.carouselAnimating === "true")
+          return;
+        panelRects = panelEls.map((el) => el.getBoundingClientRect());
+      }
+      function isOverPanel(x: number, y: number) {
+        return panelRects.some(
+          (rect) =>
+            x >= rect.left &&
+            x <= rect.right &&
+            y >= rect.top &&
+            y <= rect.bottom,
+        );
+      }
+      refreshPanelEls();
+      window.addEventListener("scroll", refreshPanelRects, { passive: true });
+      window.addEventListener("resize", refreshPanelEls);
+      document.addEventListener("astro:page-load", refreshPanelEls);
+      window.addEventListener("carousel-settled", refreshPanelRects);
+      setInterval(refreshPanelEls, 500);
+
+      window.addEventListener("resize", () => {
+        if (storm.canvas) {
+          storm.canvas.width = window.innerWidth;
+          storm.canvas.height = window.innerHeight;
+          if (storm.ctx) applyStormCanvasDefaults(storm.ctx);
+        }
+      });
+
+      window.addEventListener("mousemove", (event) => {
+        const now = performance.now();
+        if (now - storm.lastSpawn < 12) return;
+        storm.lastSpawn = now;
+        for (let i = 0; i < 3; i++) {
+          storm.particles.push({
+            x: event.clientX + (Math.random() - 0.5) * 60,
+            y: event.clientY + (Math.random() - 0.5) * 60,
+            char: chars[Math.floor(Math.random() * chars.length)],
+            born: now,
+            life: 500 + Math.random() * 400,
+            vy: -0.2 - Math.random() * 0.3,
+          });
+        }
+        if (storm.particles.length > 400)
+          storm.particles.splice(0, storm.particles.length - 400);
+      });
+
+      function frame(now: number) {
+        const { canvas, ctx } = storm;
+        if (canvas && ctx) {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          storm.particles = storm.particles.filter(
+            (p) => now - p.born < p.life,
+          );
+          for (const p of storm.particles) {
+            const age = (now - p.born) / p.life;
+            p.y += p.vy;
+            const dimmed = isOverPanel(p.x, p.y) ? 0.2 : 1;
+            ctx.globalAlpha = (1 - age) * 0.9 * dimmed;
+            ctx.fillText(p.char, p.x, p.y);
+          }
+          ctx.globalAlpha = 1;
+        }
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+    }
+  }
+
+  const EXTERNAL_LINK_SVG =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>';
+
+  function markExternalLinks() {
+    for (const link of document.querySelectorAll<HTMLAnchorElement>(
+      'a[href^="http"]',
+    )) {
+      if (link.dataset.externalMarked) continue;
+      link.dataset.externalMarked = "true";
+
+      let url: URL;
+      try {
+        url = new URL(link.href);
+      } catch {
+        continue;
+      }
+      if (url.origin === location.origin) continue;
+
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      link.dataset.urlTooltip = link.href;
+
+      if (link.hasAttribute("data-no-external-icon")) continue;
+
+      const wrapper = document.createElement("span");
+      wrapper.innerHTML = EXTERNAL_LINK_SVG;
+      const svg = wrapper.firstElementChild;
+      if (!(svg instanceof SVGElement)) continue;
+
+      svg.setAttribute("width", "0.75em");
+      svg.setAttribute("height", "0.75em");
+      svg.classList.add("shrink-0");
+      const display = getComputedStyle(link).display;
+      if (display !== "flex" && display !== "inline-flex") {
+        svg.classList.add("tui-external-icon");
+      }
+      link.appendChild(svg);
+    }
+  }
+
+  markExternalLinks();
+  document.addEventListener("astro:page-load", markExternalLinks);
+
+  function hideLoadingScreen() {
+    const el = document.getElementById("loading-screen");
+    if (!el || el.dataset.hidden === "true") return;
+    el.dataset.hidden = "true";
+    el.style.transition = "opacity 300ms ease-out";
+    el.style.opacity = "0";
+  }
+
+  if (document.readyState === "complete") {
+    hideLoadingScreen();
+  } else {
+    window.addEventListener("load", hideLoadingScreen, { once: true });
+  }
+  document.addEventListener("astro:page-load", hideLoadingScreen);
+
+  function updateCopyrightYear() {
+    const el = document.getElementById("copyright-year");
+    if (el) el.textContent = String(new Date().getFullYear());
+  }
+
+  updateCopyrightYear();
+  document.addEventListener("astro:page-load", updateCopyrightYear);
+
+  function depth(pathname: string) {
+    return pathname.split("/").filter(Boolean).length;
+  }
+
+  let pendingContactTransition: string | null = null;
+  let pendingMultiHop = false;
+
+  document.addEventListener("astro:before-preparation", (event) => {
+    const fromDepth = depth(event.from.pathname);
+    const toDepth = depth(event.to.pathname);
+    if (toDepth < fromDepth) {
+      event.direction = "back";
+    } else if (toDepth > fromDepth) {
+      event.direction = "forward";
+    }
+
+    if (event.to.pathname === "/" && event.from.pathname !== "/") {
+      const section =
+        event.to.hash === "#contact"
+          ? "contact"
+          : event.from.pathname.startsWith("/about")
+            ? "about"
+            : event.from.pathname.startsWith("/projects")
+              ? "projects"
+              : null;
+      if (section) sessionStorage.setItem("landing-section", section);
+    }
+
+    const enteringContact =
+      event.to.pathname === "/" && event.to.hash === "#contact";
+    const leavingContact =
+      document.documentElement.dataset.leavingContact === "true";
+    delete document.documentElement.dataset.leavingContact;
+
+    pendingContactTransition = enteringContact
+      ? "up"
+      : leavingContact
+        ? "down"
+        : null;
+    pendingMultiHop = document.documentElement.dataset.multiHop === "true";
+    delete document.documentElement.dataset.multiHop;
+
+    if (pendingContactTransition) {
+      document.documentElement.dataset.contactTransition =
+        pendingContactTransition;
+    } else {
+      delete document.documentElement.dataset.contactTransition;
+    }
+  });
+
+  document.addEventListener("astro:before-swap", (event) => {
+    if (pendingContactTransition) {
+      event.newDocument.documentElement.dataset.contactTransition =
+        pendingContactTransition;
+    }
+    if (pendingMultiHop) {
+      event.newDocument.documentElement.dataset.multiHop = "true";
+    }
+  });
+
+  document.addEventListener("astro:after-swap", () => {
+    if (location.pathname !== "/") return;
+    const section = sessionStorage.getItem("landing-section");
+    if (!section) return;
+    sessionStorage.removeItem("landing-section");
+    document.getElementById(section)?.scrollIntoView({ behavior: "instant" });
+  });
+
+  document.addEventListener("astro:page-load", () => {
+    delete document.documentElement.dataset.contactTransition;
+    delete document.documentElement.dataset.multiHop;
+  });
+
+  const NAVBAR_OFFSET = 80;
+  const WHEEL_THRESHOLD = 5;
+  const SCROLL_DURATION_MS = 450;
+  const ADVANCE_DEBOUNCE_MS = 150;
+
+  let carouselSections: HTMLElement[] = [];
+  let carouselIndex = 0;
+  let carouselToken = 0;
+  let lastAdvanceTime = 0;
+  let carouselAttached = false;
+  let previousSnapType = "";
+
+  function findCarouselIndex() {
+    let best = 0;
+    let bestDist = Infinity;
+    carouselSections.forEach((el, i) => {
+      const dist = Math.abs(el.getBoundingClientRect().top - NAVBAR_OFFSET);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = i;
+      }
+    });
+    return best;
+  }
+
+  function animateCarouselScrollTo(targetY: number, duration: number) {
+    const token = ++carouselToken;
+    const startY = window.scrollY;
+    const delta = targetY - startY;
+    if (Math.abs(delta) < 1) return;
+    const start = performance.now();
+    document.documentElement.dataset.carouselAnimating = "true";
+    function step(now: number) {
+      if (token !== carouselToken) return;
+      const t = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - t, 3);
+      window.scrollTo({
+        top: startY + delta * eased,
+        left: 0,
+        behavior: "instant",
+      });
+      if (t < 1) {
+        requestAnimationFrame(step);
+      } else {
+        delete document.documentElement.dataset.carouselAnimating;
+        window.dispatchEvent(new Event("carousel-settled"));
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  function goToCarouselIndex(index: number) {
+    const el = carouselSections[index];
+    if (!el) return;
+    carouselIndex = index;
+    const targetY =
+      window.scrollY + el.getBoundingClientRect().top - NAVBAR_OFFSET;
+    animateCarouselScrollTo(targetY, SCROLL_DURATION_MS);
+  }
+
+  function onCarouselWheel(event: WheelEvent) {
+    if (event.ctrlKey) return;
+    if (Math.abs(event.deltaY) < WHEEL_THRESHOLD) return;
+
+    event.preventDefault();
+
+    const now = performance.now();
+    if (now - lastAdvanceTime < ADVANCE_DEBOUNCE_MS) return;
+    lastAdvanceTime = now;
+
+    const direction = event.deltaY > 0 ? 1 : -1;
+    const target = carouselIndex + direction;
+    if (target < 0 || target >= carouselSections.length) return;
+
+    goToCarouselIndex(target);
+  }
+
+  function isPhoneViewport() {
+    return window.matchMedia("(pointer: coarse) and (max-width: 767px)")
+      .matches;
+  }
+
+  function enableCarouselPaging() {
+    carouselSections = Array.from(
+      document.querySelectorAll<HTMLElement>("main .snap-start"),
+    );
+    if (carouselSections.length < 2 || carouselAttached || isPhoneViewport())
+      return;
+    carouselAttached = true;
+    carouselIndex = findCarouselIndex();
+    previousSnapType = document.documentElement.style.scrollSnapType;
+    document.documentElement.style.scrollSnapType = "none";
+    window.addEventListener("wheel", onCarouselWheel, { passive: false });
+  }
+
+  function disableCarouselPaging() {
+    if (!carouselAttached) return;
+    carouselAttached = false;
+    document.documentElement.style.scrollSnapType = previousSnapType;
+    window.removeEventListener("wheel", onCarouselWheel);
+  }
+
+  enableCarouselPaging();
+
+  document.addEventListener("astro:before-preparation", disableCarouselPaging);
+  document.addEventListener("astro:page-load", enableCarouselPaging);
+
+  const RUST_BURST_COUNT = 28;
+
+  function spawnTagBurst(target: Element, emoji: string) {
+    const rect = target.getBoundingClientRect();
+    const originX = rect.left + rect.width / 2;
+    const originY = rect.top + rect.height / 2;
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const count = reduceMotion ? 8 : RUST_BURST_COUNT;
+
+    for (let i = 0; i < count; i++) {
+      const particle = document.createElement("span");
+      particle.textContent = emoji;
+      particle.style.position = "fixed";
+      particle.style.left = `${originX}px`;
+      particle.style.top = `${originY}px`;
+      particle.style.fontSize = `${14 + Math.random() * 16}px`;
+      particle.style.pointerEvents = "none";
+      particle.style.zIndex = "9999";
+      document.body.appendChild(particle);
+
+      const angle = Math.random() * Math.PI * 2;
+      const distance = reduceMotion
+        ? 20 + Math.random() * 20
+        : 80 + Math.random() * 160;
+      const dx = Math.cos(angle) * distance;
+      const dy = Math.sin(angle) * distance;
+      const spin = (Math.random() - 0.5) * 720;
+      const duration = reduceMotion ? 300 : 700 + Math.random() * 500;
+
+      const animation = particle.animate(
+        [
+          {
+            transform: "translate(-50%, -50%) scale(0.4) rotate(0deg)",
+            opacity: 1,
+          },
+          {
+            transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(1.1) rotate(${spin}deg)`,
+            opacity: 0,
+          },
+        ],
+        { duration, easing: "cubic-bezier(0.16, 1, 0.3, 1)", fill: "forwards" },
+      );
+      animation.onfinish = () => particle.remove();
+    }
+  }
+
+  const TAG_EASTER_EGGS: Record<string, string> = {
+    rust: "🦀",
+    go: "🦫",
+  };
+
+  document.addEventListener("click", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const tagEl = target.closest<HTMLElement>("[data-tag]");
+    if (!tagEl) return;
+    const emoji = TAG_EASTER_EGGS[tagEl.dataset.tag ?? ""];
+    if (!emoji) return;
+
+    const link = tagEl.closest("a");
+    if (link) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    spawnTagBurst(tagEl, emoji);
+  });
+
+  const INFO_ICON_SVG =
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>';
+  const TOOLTIP_HOVER_DELAY_MS = 150;
+
+  let tagTooltips: Record<string, string> = {};
+  try {
+    tagTooltips = JSON.parse(
+      document.getElementById("tooltip-data")?.textContent ?? "{}",
+    );
+  } catch {
+    tagTooltips = {};
+  }
+
+  function renderTooltipMarkup(text: string) {
+    const escaped = text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+    return escaped.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  }
+
+  let hoverTooltipEl: HTMLDivElement | null = null;
+  function getHoverTooltipEl() {
+    if (!hoverTooltipEl || !document.body.contains(hoverTooltipEl)) {
+      hoverTooltipEl = document.createElement("div");
+      hoverTooltipEl.className =
+        "tui-tag-tooltip pointer-events-none fixed z-[100] max-w-xs origin-bottom border bg-tui-panel px-3 py-2 text-xs leading-relaxed text-tui-text opacity-0 shadow-lg transition-[opacity,transform] duration-200 ease-out";
+      document.body.appendChild(hoverTooltipEl);
+    }
+    return hoverTooltipEl;
+  }
+
+  let tooltipHoverTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function positionHoverTooltip(el: HTMLElement, target: HTMLElement) {
+    const margin = 8;
+    const rect = target.getBoundingClientRect();
+    el.style.transform = "translateY(6px) scale(0.92)";
+    el.style.opacity = "0";
+
+    const tooltipRect = el.getBoundingClientRect();
+    let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+    left = Math.max(
+      margin,
+      Math.min(window.innerWidth - tooltipRect.width - margin, left),
+    );
+    const top = Math.max(margin, rect.top - tooltipRect.height - margin);
+
+    el.style.left = `${left}px`;
+    el.style.top = `${top}px`;
+
+    requestAnimationFrame(() => {
+      el.style.opacity = "1";
+      el.style.transform = "translateY(0) scale(1)";
+    });
+  }
+
+  function getHoverTooltipContent(target: HTMLElement): string | null {
+    if (target.dataset.tag) {
+      const description = tagTooltips[target.dataset.tag];
+      if (description) return renderTooltipMarkup(description);
+      return `<span class="mr-1.5 inline-flex h-3.5 w-3.5 shrink-0 -translate-y-0.5 align-middle text-tui-muted">${INFO_ICON_SVG}</span>No tooltip available`;
+    }
+    if (target.dataset.urlTooltip) {
+      return renderTooltipMarkup(target.dataset.urlTooltip);
+    }
+    return null;
+  }
+
+  function showHoverTooltip(target: HTMLElement) {
+    const content = getHoverTooltipContent(target);
+    if (!content) return;
+    const el = getHoverTooltipEl();
+    el.innerHTML = content;
+
+    const accent = getComputedStyle(target).color;
+    el.style.borderColor = accent;
+    el.style.boxShadow = `0 0 12px color-mix(in srgb, ${accent} 35%, transparent)`;
+    el.style.setProperty("--tag-tooltip-accent", accent);
+
+    positionHoverTooltip(el, target);
+  }
+
+  function hideHoverTooltip() {
+    if (!hoverTooltipEl) return;
+    hoverTooltipEl.style.opacity = "0";
+    hoverTooltipEl.style.transform = "translateY(6px) scale(0.92)";
+  }
+
+  document.addEventListener("mouseover", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const hoverEl = target.closest<HTMLElement>("[data-tag], [data-url-tooltip]");
+    if (!hoverEl) return;
+    if (tooltipHoverTimer) clearTimeout(tooltipHoverTimer);
+    tooltipHoverTimer = setTimeout(
+      () => showHoverTooltip(hoverEl),
+      TOOLTIP_HOVER_DELAY_MS,
+    );
+  });
+
+  document.addEventListener("mouseout", (event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    const hoverEl = target.closest<HTMLElement>("[data-tag], [data-url-tooltip]");
+    if (!hoverEl) return;
+    const related = event.relatedTarget;
+    if (related instanceof Node && hoverEl.contains(related)) return;
+    if (tooltipHoverTimer) {
+      clearTimeout(tooltipHoverTimer);
+      tooltipHoverTimer = null;
+    }
+    hideHoverTooltip();
+  });
+</script>

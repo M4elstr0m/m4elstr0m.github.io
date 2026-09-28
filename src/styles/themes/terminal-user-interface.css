@@ -1,0 +1,14 @@
+@theme {
+  --font-mono: "JetBrains Mono", "Courier New", monospace;
+
+  --color-tui-bg: #0b0e14;
+  --color-tui-panel: #05070a;
+  --color-tui-border: #262b36;
+  --color-tui-text: #e6e6e6;
+  --color-tui-muted: #6b7280;
+  --color-tui-gold: #e5c07b;
+  --color-tui-cyan: #56b6c2;
+  --color-tui-orange: #d19a66;
+  --color-tui-red: #e06c75;
+  --color-tui-green: #98c379;
+}
