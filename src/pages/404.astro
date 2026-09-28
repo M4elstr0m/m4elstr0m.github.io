@@ -40,35 +40,39 @@ const fr = ui.fr;
 />
 
 <script>
-  let preferred: string | null = null;
-  try {
-    preferred = localStorage.getItem('preferred-locale');
-  } catch {
-    preferred = null;
-  }
+  function applyNotFoundLocale() {
+    let preferred: string | null = null;
+    try {
+      preferred = localStorage.getItem('preferred-locale');
+    } catch {
+      preferred = null;
+    }
 
-  if (preferred === 'fr') {
+    if (preferred !== 'fr') return;
+
     const raw = document.getElementById('notfound-fr')?.textContent;
-    if (raw) {
-      try {
-        const fr = JSON.parse(raw) as {
-          heading: string;
-          home: string;
-          hrefs: Record<string, string>;
-        };
-        document.documentElement.lang = 'fr';
-        const heading = document.querySelector('[data-i18n-404="heading"]');
-        if (heading) heading.textContent = fr.heading;
-        const link = document.querySelector<HTMLAnchorElement>(
-          '[data-i18n-404="home"]',
-        );
-        if (link) {
-          link.textContent = fr.home;
-          link.href = fr.hrefs.home;
-        }
-      } catch {
-        /* ignore malformed data */
+    if (!raw) return;
+    try {
+      const fr = JSON.parse(raw) as {
+        heading: string;
+        home: string;
+        hrefs: Record<string, string>;
+      };
+      document.documentElement.lang = 'fr';
+      const heading = document.querySelector('[data-i18n-404="heading"]');
+      if (heading) heading.textContent = fr.heading;
+      const link = document.querySelector<HTMLAnchorElement>(
+        '[data-i18n-404="home"]',
+      );
+      if (link) {
+        link.textContent = fr.home;
+        link.href = fr.hrefs.home;
       }
+    } catch {
+      /* ignore malformed data */
     }
   }
+
+  applyNotFoundLocale();
+  document.addEventListener('astro:page-load', applyNotFoundLocale);
 </script>

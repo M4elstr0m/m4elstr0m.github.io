@@ -50,7 +50,7 @@ const {
 const stars = displayStars && repo ? await fetchGithubStars(repo) : null;
 ---
 
-<Layout title={`${t("meta.home.title")}: ${title}`} description={summary}>
+<Layout title={locale === "fr" ? `${t("brand.name")} : ${title}` : `${t("brand.name")}: ${title}`} description={summary}>
   <main class="mx-auto max-w-3xl px-4 py-12 sm:px-8">
     <a
       href={getRelativeLocaleUrl(locale, "/projects")}

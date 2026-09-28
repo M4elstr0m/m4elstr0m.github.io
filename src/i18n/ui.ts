@@ -4,6 +4,8 @@ export const defaultLocale: Locale = "en";
 
 export const ui = {
   en: {
+    "brand.name": "M4elstr0m",
+
     "nav.about": "about",
     "nav.projects": "projects",
     "nav.contact": "contact",
@@ -55,7 +57,7 @@ export const ui = {
     "404.heading": "This page doesn't exist, or it was moved.",
     "404.home": "home",
 
-    "meta.home.title": "M4elstr0m",
+    "meta.home.title": "M4elstr0m: Portfolio",
     "meta.home.description":
       "Portfolio of M4elstr0m, a cybersecurity and coding enjoyer working primarily in Go and Rust, focused on OSINT and offensive security tooling.",
     "meta.about.title": "M4elstr0m: About",
@@ -72,11 +74,13 @@ export const ui = {
     "tooltip.unavailable": "No tooltip available",
   },
   fr: {
-    "nav.about": "à propos",
-    "nav.projects": "projets",
-    "nav.contact": "contact",
+    "brand.name": "M4elstr0m",
+
+    "nav.about": "À propos",
+    "nav.projects": "Projets",
+    "nav.contact": "Contact",
     "nav.homeAriaLabel": "Accueil",
-    "nav.language": "langue",
+    "nav.language": "Langue",
 
     "loading.boot": "démarrage de m4elstr0m.sh",
 
@@ -93,7 +97,7 @@ export const ui = {
     "project.live": "en ligne",
     "project.private": "privé",
     "project.public": "public",
-    "project.now": "Présent",
+    "project.now": "Aujourd'hui",
 
     "seeMore.title": "Voir plus",
     "seeMore.subtitle": "Parcourir la liste complète des projets",
@@ -111,7 +115,7 @@ export const ui = {
     "about.badgesTools": "outils",
     "about.ferrisAlt": "Illustration ASCII de Ferris, la mascotte de Rust",
 
-    "panel.about": "à propos",
+    "panel.about": "À propos",
     "panel.classified": "classifié",
     "panel.projects": "projets",
     "panel.contact": "contact",
@@ -124,19 +128,19 @@ export const ui = {
     "404.heading": "Cette page n'existe pas, ou elle a été déplacée.",
     "404.home": "accueil",
 
-    "meta.home.title": "M4elstr0m",
+    "meta.home.title": "M4elstr0m : Portfolio",
     "meta.home.description":
       "Portfolio de M4elstr0m, passionné de cybersécurité et de programmation, travaillant principalement en Go et Rust, spécialisé en OSINT et en outillage offensif.",
-    "meta.about.title": "M4elstr0m : à propos",
+    "meta.about.title": "M4elstr0m : À propos",
     "meta.about.description":
       "En savoir plus sur M4elstr0m, passionné de cybersécurité et de programmation, travaillant principalement en Go et Rust.",
-    "meta.projects.title": "M4elstr0m : projets",
+    "meta.projects.title": "M4elstr0m : Projets",
     "meta.projects.description":
       "Liste complète des projets de M4elstr0m, mêlant Go, Rust, OSINT et outillage offensif.",
     "meta.404.title": "M4elstr0m : 404",
     "meta.404.description": "Page introuvable.",
 
-    "redacted.ariaPrefix": "Transmission classifiée, cliquer pour déchiffrer :",
+    "redacted.ariaPrefix": "Cliquer pour déchiffrer",
 
     "tooltip.unavailable": "Aucune info-bulle disponible",
   },
