@@ -6,7 +6,6 @@ cover: ./cover.svg
 repo: https://github.com/M4elstr0m/packet-loom
 featured: true
 startYear: 2026
-date: 2026-01-15
 ---
 
 This is placeholder content. Replace this file with a real write-up.

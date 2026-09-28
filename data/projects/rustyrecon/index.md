@@ -6,7 +6,6 @@ cover: ./cover.svg
 repo: https://github.com/M4elstr0m/rustyrecon
 featured: true
 startYear: 2026
-date: 2026-02-20
 ---
 
 This is placeholder content. Replace this file with a real write-up.

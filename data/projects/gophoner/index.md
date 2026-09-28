@@ -1,6 +1,6 @@
 ---
 title: gophoner
-summary: A CLI & TUI tool that checks, in parallel, whether a phone number is registered across popular apps and websites, with no prerequisite and no notification sent to the target.
+summary: A CLI & TUI tool that checks simultaneously if a phone number is registered on popular apps & websites, without any prerequisite.
 stack: [Go, OSINT, CLI, TUI]
 cover: ./cover.png
 coverGif: /projects/gophoner-cover.gif
@@ -8,18 +8,22 @@ repo: https://github.com/M4elstr0m/gophoner
 featured: true
 displayStars: true
 startYear: 2026
-date: 2026-03-05
+rank: 2
 ---
 
-**gophoner** checks a single phone number against a set of OSINT modules concurrently, so checking against several services takes about as long as the slowest one, not the sum of them all. It ships both as a scriptable CLI (`gophoner check`) and a guided terminal UI (`gophoner interactive`), built with Cobra and Bubble Tea.
+**gophoner** checks a single phone number against a set of individual modules concurrently, so checking against several services takes about as long as the slowest one, not the sum of them all. It ships both as a scriptable CLI (`gophoner check`) and a guided terminal UI (`gophoner interactive`), respectively built with Cobra and Bubble Tea.
+
+It is a spiritual successor to [ignorant by Megadose](https://github.com/Megadose/ignorant/), which was one of the only **free and open-source** tools to do a similar job.
 
 ## Overview
 
-None of the supported modules alert or notify the target phone number: no SMS or email is triggered by a check. Every request is sent with a randomized, internally consistent browser fingerprint (TLS, User-Agent, Client Hints) drawn from a real desktop browser pool, and target numbers are never written to the log file unless `--debug` is explicitly set.
+None of the supported modules alert or notify the target phone number: no SMS or email is triggered by a check.
 
-## Notes
+Every request is sent with a randomized, internally consistent browser fingerprint (TLS, User-Agent, Client Hints) drawn from a real, hand-made desktop browser pool. 
 
-Cross-platform prebuilt binaries (Windows, Linux, macOS), `--json` output for scripting, and an update check on startup.
+Target numbers are never written to the log file unless `--debug` is explicitly set.
+
+Users can download it for every platform, from various package managers.
 
 ## Links
 

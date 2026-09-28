@@ -4,11 +4,10 @@ import TerminalPanel from '../TerminalPanel.astro';
 import ProjectCard from '../ProjectCard.astro';
 import SeeMoreCard from '../SeeMoreCard.astro';
 import Button from '../Button.astro';
+import { sortProjectsByRank } from '../../lib/sort-projects';
 
-const projects = (await getCollection('projects'))
-  .filter((project) => project.data.featured)
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, 3);
+const featured = (await getCollection('projects')).filter((project) => project.data.featured);
+const projects = (await sortProjectsByRank(featured)).slice(0, 3);
 ---
 
 <TerminalPanel label="projects" class="w-full">

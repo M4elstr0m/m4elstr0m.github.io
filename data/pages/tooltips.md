@@ -52,4 +52,6 @@ tooltips:
     description: "**Command-Line Interface**: text-only input where the user types commands and receives text output in a **terminal**."
   - tag: TUI
     description: "**Text-based User Interface**: user interface that includes visual elements (like windows, menus, forms, etc.) directly in a **terminal**."
+  - tag: GUI
+    description: "**Graphical User Interface**: interface that enables users to interact with services through graphical elements integrated seamlessly in their desktop environnement using native windows."
 ---

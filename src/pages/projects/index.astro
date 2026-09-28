@@ -7,7 +7,7 @@ import ProjectGrid from '../../components/ProjectGrid';
 import BackHint from '../../components/BackHint.astro';
 import { findIcon } from '../../lib/find-icon';
 import { categorizeTag, tagColorClasses } from '../../lib/categorize-tag';
-import { fetchGithubStars } from '../../lib/github-stars';
+import { sortProjectsByRank } from '../../lib/sort-projects';
 
 const about = await getEntry('pages', 'about');
 const categories = {
@@ -17,26 +17,22 @@ const categories = {
 };
 
 const entries = await getCollection('projects');
-const projects = await Promise.all(
-  entries
-    .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-    .map(async (entry) => ({
-      slug: entry.id,
-      title: entry.data.title,
-      summary: entry.data.summary,
-      stack: entry.data.stack.map((tech) => ({
-        label: tech,
-        icon: findIcon(tech),
-        colorClass: tagColorClasses[categorizeTag(tech, categories)],
-      })),
-      cover: entry.data.coverGif ?? entry.data.cover.src,
-      private: entry.data.private,
-      stars:
-        entry.data.displayStars && entry.data.repo ? await fetchGithubStars(entry.data.repo) : null,
-      startYear: entry.data.startYear,
-      endYear: entry.data.endYear ?? null,
-    })),
-);
+const sorted = await sortProjectsByRank(entries);
+const projects = sorted.map((entry) => ({
+  slug: entry.id,
+  title: entry.data.title,
+  summary: entry.data.summary,
+  stack: entry.data.stack.map((tech) => ({
+    label: tech,
+    icon: findIcon(tech),
+    colorClass: tagColorClasses[categorizeTag(tech, categories)],
+  })),
+  cover: entry.data.coverGif ?? entry.data.cover.src,
+  private: entry.data.private,
+  stars: entry.stars,
+  startYear: entry.data.startYear,
+  endYear: entry.data.endYear ?? null,
+}));
 ---
 
 <Layout title="M4elstr0m: Projects" description="Full list of projects by M4elstr0m, spanning Go, Rust, OSINT, and offensive security tooling.">
