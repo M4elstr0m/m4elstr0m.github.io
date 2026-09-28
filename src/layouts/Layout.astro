@@ -407,9 +407,12 @@ const tooltipsMap = Object.fromEntries(
     goToCarouselIndex(target);
   }
 
+  const phoneMediaQuery = window.matchMedia(
+    "(pointer: coarse) and (max-width: 767px)",
+  );
+
   function isPhoneViewport() {
-    return window.matchMedia("(pointer: coarse) and (max-width: 767px)")
-      .matches;
+    return phoneMediaQuery.matches;
   }
 
   function enableCarouselPaging() {
@@ -436,6 +439,14 @@ const tooltipsMap = Object.fromEntries(
 
   document.addEventListener("astro:before-preparation", disableCarouselPaging);
   document.addEventListener("astro:page-load", enableCarouselPaging);
+
+  phoneMediaQuery.addEventListener("change", () => {
+    if (isPhoneViewport()) {
+      disableCarouselPaging();
+    } else {
+      enableCarouselPaging();
+    }
+  });
 
   const RUST_BURST_COUNT = 28;
 
