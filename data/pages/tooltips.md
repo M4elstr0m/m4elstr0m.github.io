@@ -9,9 +9,9 @@ tooltips:
   - tag: SQLite
     description: "SQLite is a **lightweight**, **serverless**, **file-based SQL** database engine. It requires no separate server process, making it ideal for embedded storage in tools, mobile apps, and small local datasets."
   - tag: React
-    description: "React is a JavaScript library for building user interfaces out of composable components. It is one of the most widely adopted front-end tools on the web."
+    description: "React is a JavaScript library for building **user interfaces** out of reusable components. It is one of the most widely adopted front-end tools on the web."
   - tag: OSINT
-    description: "**Open-Source Intelligence**: collecting and analyzing publicly available information (social media, public records, leaked data, DNS, etc.) to build a picture of a target without direct interaction."
+    description: "**Open-Source Intelligence**: investigating a target using **publicly available information** (social media, public records, leaked data, DNS, etc.)without direct interaction."
   - tag: Coding
     description: "General **software development**, writing, structuring, and maintaining code across languages and paradigms, independent of any specific stack."
   - tag: Forensics

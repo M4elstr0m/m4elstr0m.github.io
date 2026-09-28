@@ -6,6 +6,7 @@ import TerminalPanel from '../../components/TerminalPanel.astro';
 import Button from '../../components/Button.astro';
 import ProjectTag from '../../components/ProjectTag.astro';
 import LucideIcon from '../../components/LucideIcon.astro';
+import { fetchGithubStars, formatStarCount } from '../../lib/github-stars';
 
 export async function getStaticPaths() {
   const projects = await getCollection('projects');
@@ -25,14 +26,20 @@ const {
   summary,
   stack,
   cover,
+  coverGif,
   gallery,
   youtubeId,
   audio,
   repo,
   external,
   private: isPrivate,
+  displayStars,
+  startYear,
+  endYear,
 } = project.data;
 const { Content } = await render(project);
+
+const stars = displayStars && repo ? await fetchGithubStars(repo) : null;
 
 const about = await getEntry('pages', 'about');
 const categories = {
@@ -56,14 +63,31 @@ const categories = {
       labelColor={isPrivate ? 'red' : 'green'}
       bodyClass="space-y-8"
     >
-      <Image src={cover} alt="" class="w-full border border-tui-border" />
+      {
+        coverGif ? (
+          <img src={coverGif} alt="" class="w-full border border-tui-border" />
+        ) : (
+          <Image src={cover} alt="" class="w-full border border-tui-border" />
+        )
+      }
 
       <header class="space-y-3">
-        <h1 class="text-3xl font-bold text-tui-text">{title}</h1>
+        <div class="flex items-start justify-between gap-3">
+          <h1 class="text-3xl font-bold text-tui-text">{title}</h1>
+          {stars != null && (
+            <span class="flex shrink-0 items-center gap-1 pt-1 text-sm font-semibold text-tui-gold">
+              <LucideIcon name="star" class="h-4 w-4 fill-current" />
+              {formatStarCount(stars)}
+            </span>
+          )}
+        </div>
         <p class="text-tui-muted">{summary}</p>
         <ul class="flex flex-wrap gap-2">
           {stack.map((tech) => <ProjectTag tech={tech} categories={categories} />)}
         </ul>
+        <p class="text-xs text-tui-muted">
+          {startYear}-{endYear ?? 'Now'}
+        </p>
         <div class="flex flex-wrap gap-3 pt-2">
           {repo && <Button href={repo}>source</Button>}
           {external && <Button href={external}>live</Button>}

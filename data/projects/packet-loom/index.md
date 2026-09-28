@@ -5,6 +5,7 @@ stack: [Go, Networking]
 cover: ./cover.svg
 repo: https://github.com/M4elstr0m/packet-loom
 featured: true
+startYear: 2026
 date: 2026-01-15
 ---
 

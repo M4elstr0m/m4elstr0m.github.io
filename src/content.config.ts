@@ -14,6 +14,7 @@ const projects = defineCollection({
       summary: z.string(),
       stack: z.array(z.string()),
       cover: image(),
+      coverGif: z.string().optional(),
       gallery: z.array(image()).default([]),
       youtubeId: z.string().optional(),
       audio: z.string().optional(),
@@ -21,6 +22,9 @@ const projects = defineCollection({
       external: z.url().optional(),
       private: z.boolean().default(false),
       featured: z.boolean().default(false),
+      displayStars: z.boolean().default(false),
+      startYear: z.number(),
+      endYear: z.number().optional(),
       date: z.coerce.date(),
     }),
 });

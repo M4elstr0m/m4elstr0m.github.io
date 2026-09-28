@@ -5,6 +5,8 @@ stack: [Go, Wails, Gaming, Reverse Engineering]
 cover: ./cover.png
 repo: https://github.com/M4elstr0m/TarkovMapTracker
 featured: true
+displayStars: true
+startYear: 2023
 date: 2026-08-04
 ---
 

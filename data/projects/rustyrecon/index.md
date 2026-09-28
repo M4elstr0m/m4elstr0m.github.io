@@ -5,6 +5,7 @@ stack: [Rust, OSINT]
 cover: ./cover.svg
 repo: https://github.com/M4elstr0m/rustyrecon
 featured: true
+startYear: 2026
 date: 2026-02-20
 ---
 

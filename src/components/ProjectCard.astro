@@ -4,13 +4,28 @@ import { Image } from 'astro:assets';
 import { getEntry } from 'astro:content';
 import TerminalPanel from './TerminalPanel.astro';
 import ProjectTag from './ProjectTag.astro';
+import LucideIcon from './LucideIcon.astro';
+import { fetchGithubStars, formatStarCount } from '../lib/github-stars';
 
 interface Props {
   project: CollectionEntry<'projects'>;
 }
 
 const { project } = Astro.props;
-const { title, summary, stack, cover, private: isPrivate } = project.data;
+const {
+  title,
+  summary,
+  stack,
+  cover,
+  coverGif,
+  private: isPrivate,
+  displayStars,
+  repo,
+  startYear,
+  endYear,
+} = project.data;
+
+const stars = displayStars && repo ? await fetchGithubStars(repo) : null;
 
 const about = await getEntry('pages', 'about');
 const categories = {
@@ -27,19 +42,40 @@ const categories = {
     class="flex-1 transition-colors group-hover:border-tui-cyan"
     bodyClass="flex flex-col p-0"
   >
-    <Image
-      src={cover}
-      alt=""
-      loading="lazy"
-      decoding="async"
-      class="aspect-video w-full border-b border-tui-border object-cover"
-    />
+    {
+      coverGif ? (
+        <img
+          src={coverGif}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          class="aspect-video w-full border-b border-tui-border object-cover"
+        />
+      ) : (
+        <Image
+          src={cover}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          class="aspect-video w-full border-b border-tui-border object-cover"
+        />
+      )
+    }
     <div class="flex flex-1 flex-col gap-2 p-5">
-      <h3 class="text-lg font-semibold text-tui-text transition-colors group-hover:text-tui-cyan">{title}</h3>
+      <div class="flex items-start justify-between gap-2">
+        <h3 class="text-lg font-semibold text-tui-text transition-colors group-hover:text-tui-cyan">{title}</h3>
+        {stars != null && (
+          <span class="flex shrink-0 items-center gap-1 pt-0.5 text-xs font-semibold text-tui-gold">
+            <LucideIcon name="star" class="h-3.5 w-3.5 fill-current" />
+            {formatStarCount(stars)}
+          </span>
+        )}
+      </div>
       <p class="flex-1 text-sm text-tui-muted">{summary}</p>
       <ul class="flex flex-wrap gap-2 pt-2">
         {stack.map((tech) => <ProjectTag tech={tech} categories={categories} />)}
       </ul>
+      <p class="pt-1 text-xs text-tui-muted">{startYear}-{endYear ?? 'Now'}</p>
     </div>
   </TerminalPanel>
 </a>
