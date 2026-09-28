@@ -36,4 +36,5 @@ Every push to `main` triggers `.github/workflows/deploy.yml`, which builds the s
 ## Roadmap
 
 - [x] Phone accessbility (disable carousel scroll)
-- [ ] French localization (i18n)
+- [x] French localization (i18n)
+- [ ] Code clean-up, move markdown files in logical folders
