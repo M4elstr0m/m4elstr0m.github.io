@@ -1,21 +1,26 @@
 ---
 import { getCollection } from 'astro:content';
+import { getRelativeLocaleUrl } from 'astro:i18n';
 import TerminalPanel from '../TerminalPanel.astro';
 import ProjectCard from '../ProjectCard.astro';
 import SeeMoreCard from '../SeeMoreCard.astro';
 import Button from '../Button.astro';
 import { sortProjectsByRank } from '../../lib/sort-projects';
+import { useTranslations } from '../../i18n/utils';
 
 const featured = (await getCollection('projects')).filter((project) => project.data.featured);
 const projects = (await sortProjectsByRank(featured)).slice(0, 3);
+
+const locale = Astro.currentLocale ?? 'en';
+const t = useTranslations(locale);
 ---
 
-<TerminalPanel label="projects" class="w-full">
+<TerminalPanel label={t('panel.projects')} class="w-full">
   <div class="grid items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4">
     {projects.map((project) => <ProjectCard project={project} />)}
     <SeeMoreCard />
   </div>
   <div class="mt-10 flex justify-center">
-    <Button href="/projects">view all projects</Button>
+    <Button href={getRelativeLocaleUrl(locale, '/projects')}>{t('home.viewAllProjects')}</Button>
   </div>
 </TerminalPanel>

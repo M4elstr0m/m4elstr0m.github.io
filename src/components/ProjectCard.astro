@@ -1,11 +1,14 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { Image } from 'astro:assets';
+import { getRelativeLocaleUrl } from 'astro:i18n';
 import TerminalPanel from './TerminalPanel.astro';
 import ProjectTag from './ProjectTag.astro';
 import LucideIcon from './LucideIcon.astro';
 import ProjectCoverPlaceholder from './ProjectCoverPlaceholder.astro';
 import { fetchGithubStars, formatStarCount } from '../lib/github-stars';
+import { useTranslations } from '../i18n/utils';
+import { localizedProjectSummary } from '../lib/i18n-content';
 
 interface Props {
   project: CollectionEntry<'projects'>;
@@ -14,7 +17,6 @@ interface Props {
 const { project } = Astro.props;
 const {
   title,
-  summary,
   stack,
   cover,
   coverGif,
@@ -26,12 +28,17 @@ const {
   endYear,
 } = project.data;
 
+const locale = Astro.currentLocale ?? 'en';
+const t = useTranslations(locale);
+const summary = await localizedProjectSummary(project, locale);
+const projectsBase = getRelativeLocaleUrl(locale, '/projects').replace(/\/$/, '');
+
 const stars = displayStars && repo ? await fetchGithubStars(repo) : null;
 ---
 
-<a href={`/projects/${project.id}`} class="group flex h-full flex-col">
+<a href={`${projectsBase}/${project.id}`} class="group flex h-full flex-col">
   <TerminalPanel
-    label={isPrivate ? 'private' : 'public'}
+    label={isPrivate ? t('project.private') : t('project.public')}
     labelColor={isPrivate ? 'red' : 'green'}
     class="flex-1 transition-colors group-hover:border-tui-cyan"
     bodyClass="flex flex-col p-0"
@@ -74,7 +81,7 @@ const stars = displayStars && repo ? await fetchGithubStars(repo) : null;
       <ul class="flex flex-wrap gap-2 pt-2">
         {stack.map((tech) => <ProjectTag tech={tech} />)}
       </ul>
-      <p class="pt-1 text-xs text-tui-muted">{startYear}-{endYear ?? 'Now'}</p>
+      <p class="pt-1 text-xs text-tui-muted">{startYear}-{endYear ?? t('project.now')}</p>
     </div>
   </TerminalPanel>
 </a>

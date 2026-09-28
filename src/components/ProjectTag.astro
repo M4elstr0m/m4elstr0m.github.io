@@ -3,6 +3,7 @@ import { getEntry } from 'astro:content';
 import Icon from './Icon.astro';
 import { findIcon } from '../lib/find-icon';
 import { getTagColor, tagColorClasses } from '../lib/categorize-tag';
+import { getLocalizedTagMaps, getTagLabel } from '../lib/tag-i18n';
 
 interface Props {
   tech: string;
@@ -15,6 +16,8 @@ const tagsEntry = await getEntry('pages', 'tags');
 const colorMap = Object.fromEntries(
   (tagsEntry?.data.tags ?? []).map((t) => [t.tag.toLowerCase(), t.color]),
 );
+
+const { labelMap } = await getLocalizedTagMaps(Astro.currentLocale ?? 'en');
 ---
 
 <li
@@ -25,5 +28,5 @@ const colorMap = Object.fromEntries(
   ]}
 >
   {icon && <Icon icon={icon} class="h-3 w-3 shrink-0" />}
-  {tech}
+  {getTagLabel(tech, labelMap)}
 </li>

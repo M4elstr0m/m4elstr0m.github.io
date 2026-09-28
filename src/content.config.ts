@@ -69,4 +69,41 @@ const pages = defineCollection({
   }),
 });
 
-export const collections = { projects, pages };
+const projectsFr = defineCollection({
+  loader: glob({
+    pattern: '*.md',
+    base: new URL('../data/i18n/fr/projects', import.meta.url),
+  }),
+  schema: z.object({
+    summary: z.string().optional(),
+  }),
+});
+
+const pagesFr = defineCollection({
+  loader: glob({
+    pattern: '*.md',
+    base: new URL('../data/i18n/fr/pages', import.meta.url),
+  }),
+  schema: z.object({
+    heading: z.string().optional(),
+    languages: z
+      .array(
+        z.object({
+          name: z.string(),
+          level: z.string(),
+        }),
+      )
+      .optional(),
+    tags: z
+      .array(
+        z.object({
+          tag: z.string(),
+          label: z.string().optional(),
+          tooltip: z.string().optional(),
+        }),
+      )
+      .optional(),
+  }),
+});
+
+export const collections = { projects, pages, projectsFr, pagesFr };

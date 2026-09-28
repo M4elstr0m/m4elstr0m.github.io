@@ -1,6 +1,7 @@
 ---
-import { getCollection, render, type CollectionEntry } from "astro:content";
+import { getCollection, type CollectionEntry } from "astro:content";
 import { Image } from "astro:assets";
+import { getRelativeLocaleUrl } from "astro:i18n";
 import Layout from "../../layouts/Layout.astro";
 import TerminalPanel from "../../components/TerminalPanel.astro";
 import Button from "../../components/Button.astro";
@@ -8,6 +9,8 @@ import ProjectTag from "../../components/ProjectTag.astro";
 import LucideIcon from "../../components/LucideIcon.astro";
 import ProjectCoverPlaceholder from "../../components/ProjectCoverPlaceholder.astro";
 import { fetchGithubStars, formatStarCount } from "../../lib/github-stars";
+import { useTranslations } from "../../i18n/utils";
+import { renderLocalizedProject } from "../../lib/i18n-content";
 
 export async function getStaticPaths() {
   const projects = await getCollection("projects");
@@ -22,6 +25,10 @@ interface Props {
 }
 
 const { project } = Astro.props;
+const locale = Astro.currentLocale ?? "en";
+const t = useTranslations(locale);
+
+const { data: projectData, Content } = await renderLocalizedProject(project, locale);
 const {
   title,
   summary,
@@ -38,23 +45,22 @@ const {
   displayStars,
   startYear,
   endYear,
-} = project.data;
-const { Content } = await render(project);
+} = projectData;
 
 const stars = displayStars && repo ? await fetchGithubStars(repo) : null;
 ---
 
-<Layout title={`M4elstr0m: ${title}`} description={summary}>
+<Layout title={`${t("meta.home.title")}: ${title}`} description={summary}>
   <main class="mx-auto max-w-3xl px-4 py-12 sm:px-8">
     <a
-      href="/projects"
+      href={getRelativeLocaleUrl(locale, "/projects")}
       class="mb-4 inline-flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-tui-muted transition-colors hover:text-tui-gold"
     >
       <LucideIcon name="chevron-left" class="h-4 w-4" />
-      back to projects
+      {t("projects.back")}
     </a>
     <TerminalPanel
-      label={isPrivate ? "private" : "public"}
+      label={isPrivate ? t("project.private") : t("project.public")}
       labelColor={isPrivate ? "red" : "green"}
       bodyClass="space-y-8"
     >
@@ -88,11 +94,11 @@ const stars = displayStars && repo ? await fetchGithubStars(repo) : null;
           {stack.map((tech) => <ProjectTag tech={tech} />)}
         </ul>
         <p class="text-xs text-tui-muted">
-          {startYear}-{endYear ?? "Now"}
+          {startYear}-{endYear ?? t("project.now")}
         </p>
         <div class="flex flex-wrap gap-3 pt-2">
-          {repo && <Button href={repo}>link</Button>}
-          {external && <Button href={external}>live</Button>}
+          {repo && <Button href={repo}>{t("project.link")}</Button>}
+          {external && <Button href={external}>{t("project.live")}</Button>}
         </div>
       </header>
 

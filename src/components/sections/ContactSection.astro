@@ -1,18 +1,19 @@
 ---
-import { getEntry, render } from 'astro:content';
 import { siGithub } from 'simple-icons';
 import TerminalPanel from '../TerminalPanel.astro';
 import Icon from '../Icon.astro';
 import Button from '../Button.astro';
+import { useTranslations } from '../../i18n/utils';
+import { renderLocalizedPage } from '../../lib/i18n-content';
 
-const contact = await getEntry('pages', 'contact');
-if (!contact) throw new Error('Missing data/pages/contact.md');
-const { Content } = await render(contact);
-const { heading, github } = contact.data;
+const locale = Astro.currentLocale ?? 'en';
+const t = useTranslations(locale);
+const { data: contactData, Content } = await renderLocalizedPage('contact', locale);
+const { heading, github } = contactData;
 ---
 
 <TerminalPanel
-  label="contact"
+  label={t('panel.contact')}
   class="w-full min-h-[42vh]"
   bodyClass="flex flex-col items-center justify-center gap-6 text-center"
 >

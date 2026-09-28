@@ -1,8 +1,9 @@
 ---
 import { ClientRouter } from "astro:transitions";
-import { getEntry } from "astro:content";
 import BaseHead from "../components/BaseHead.astro";
 import Navbar from "../components/Navbar.astro";
+import { useTranslations } from "../i18n/utils";
+import { getLocalizedTagMaps } from "../lib/tag-i18n";
 import "../styles/global.css";
 
 interface Props {
@@ -12,16 +13,16 @@ interface Props {
 
 const { title, description } = Astro.props;
 
+const locale = Astro.currentLocale ?? "en";
+const t = useTranslations(locale);
+
 const currentYear = new Date().getFullYear();
 
-const tagsEntry = await getEntry("pages", "tags");
-const tooltipsMap = Object.fromEntries(
-  (tagsEntry?.data.tags ?? []).map((t) => [t.tag.toLowerCase(), t.tooltip]),
-);
+const { tooltipMap: tooltipsMap } = await getLocalizedTagMaps(locale);
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang={locale}>
   <head>
     <BaseHead title={title} description={description} />
     <ClientRouter />
@@ -34,7 +35,7 @@ const tooltipsMap = Object.fromEntries(
     >
       <p class="flex items-center gap-2 font-mono text-sm uppercase tracking-[0.2em] text-tui-green">
         <span>$</span>
-        <span>booting m4elstr0m.sh</span>
+        <span>{t("loading.boot")}</span>
         <span class="tui-cursor inline-block h-[1em] w-[0.55ch] bg-tui-gold align-middle"></span>
       </p>
     </div>
@@ -54,12 +55,43 @@ const tooltipsMap = Object.fromEntries(
     <script
       type="application/json"
       id="tooltip-data"
-      set:html={JSON.stringify(tooltipsMap)}
+      set:html={JSON.stringify({ tooltips: tooltipsMap, noTooltipText: t('tooltip.unavailable') })}
     />
   </body>
 </html>
 
 <script>
+  import { isHomePath, stripLocalePrefix } from "../lib/locale-path";
+
+  const LOCALE_STORAGE_KEY = "preferred-locale";
+
+  function maybeRedirectForLocale() {
+    if (location.pathname !== "/") return;
+    let stored: string | null = null;
+    try {
+      stored = localStorage.getItem(LOCALE_STORAGE_KEY);
+    } catch {
+      return;
+    }
+    if (stored) return;
+
+    const languages = navigator.languages ?? [navigator.language];
+    const prefersFr = languages.some((lang) =>
+      lang?.toLowerCase().startsWith("fr"),
+    );
+    if (!prefersFr) return;
+
+    try {
+      localStorage.setItem(LOCALE_STORAGE_KEY, "fr");
+    } catch {
+      return;
+    }
+    location.replace("/fr/");
+  }
+
+  maybeRedirectForLocale();
+  document.addEventListener("astro:page-load", maybeRedirectForLocale);
+
   interface Particle {
     x: number;
     y: number;
@@ -273,20 +305,21 @@ const tooltipsMap = Object.fromEntries(
       event.direction = "forward";
     }
 
-    if (event.to.pathname === "/" && event.from.pathname !== "/") {
+    if (isHomePath(event.to.pathname) && !isHomePath(event.from.pathname)) {
+      const fromPath = stripLocalePrefix(event.from.pathname);
       const section =
         event.to.hash === "#contact"
           ? "contact"
-          : event.from.pathname.startsWith("/about")
+          : fromPath.startsWith("/about")
             ? "about"
-            : event.from.pathname.startsWith("/projects")
+            : fromPath.startsWith("/projects")
               ? "projects"
               : null;
       if (section) sessionStorage.setItem("landing-section", section);
     }
 
     const enteringContact =
-      event.to.pathname === "/" && event.to.hash === "#contact";
+      isHomePath(event.to.pathname) && event.to.hash === "#contact";
     const leavingContact =
       document.documentElement.dataset.leavingContact === "true";
     delete document.documentElement.dataset.leavingContact;
@@ -318,7 +351,7 @@ const tooltipsMap = Object.fromEntries(
   });
 
   document.addEventListener("astro:after-swap", () => {
-    if (location.pathname !== "/") return;
+    if (!isHomePath(location.pathname)) return;
     const section = sessionStorage.getItem("landing-section");
     if (!section) return;
     sessionStorage.removeItem("landing-section");
@@ -522,13 +555,22 @@ const tooltipsMap = Object.fromEntries(
   const TOOLTIP_HOVER_DELAY_MS = 150;
 
   let tagTooltips: Record<string, string> = {};
-  try {
-    tagTooltips = JSON.parse(
-      document.getElementById("tooltip-data")?.textContent ?? "{}",
-    );
-  } catch {
-    tagTooltips = {};
+  let noTooltipText = "No tooltip available";
+
+  function refreshTagTooltips() {
+    try {
+      const parsed = JSON.parse(
+        document.getElementById("tooltip-data")?.textContent ?? "{}",
+      );
+      tagTooltips = parsed.tooltips ?? {};
+      noTooltipText = parsed.noTooltipText ?? noTooltipText;
+    } catch {
+      tagTooltips = {};
+    }
   }
+
+  refreshTagTooltips();
+  document.addEventListener("astro:page-load", refreshTagTooltips);
 
   function renderTooltipMarkup(text: string) {
     const escaped = text
@@ -578,7 +620,7 @@ const tooltipsMap = Object.fromEntries(
     if (target.dataset.tag) {
       const description = tagTooltips[target.dataset.tag];
       if (description) return renderTooltipMarkup(description);
-      return `<span class="mr-1.5 inline-flex h-3.5 w-3.5 shrink-0 -translate-y-0.5 align-middle text-tui-muted">${INFO_ICON_SVG}</span>No tooltip available`;
+      return `<span class="mr-1.5 inline-flex h-3.5 w-3.5 shrink-0 -translate-y-0.5 align-middle text-tui-muted">${INFO_ICON_SVG}</span>${noTooltipText}`;
     }
     if (target.dataset.urlTooltip) {
       return renderTooltipMarkup(target.dataset.urlTooltip);
