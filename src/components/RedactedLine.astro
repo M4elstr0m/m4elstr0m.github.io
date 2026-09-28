@@ -1,0 +1,110 @@
+---
+import LucideIcon from "./LucideIcon.astro";
+
+interface Props {
+  text: string;
+}
+
+const { text } = Astro.props;
+const placeholder = text.replace(/[^\s]/g, "█");
+---
+
+<button
+  type="button"
+  data-redacted={text}
+  aria-label={`Classified transmission, click to decrypt: ${text}`}
+  class="flex w-full items-center gap-3 border border-tui-border bg-tui-bg/60 px-4 py-3 text-left transition-colors hover:border-tui-red disabled:cursor-default disabled:hover:border-tui-border sm:gap-4 sm:px-6 sm:py-4 cursor-pointer"
+>
+  <span class="relative h-4 w-4 shrink-0 sm:h-5 sm:w-5">
+    <span
+      data-icon-locked
+      class="absolute inset-0 transition-opacity duration-300"
+    >
+      <LucideIcon name="lock" class="h-full w-full text-tui-red" />
+    </span>
+    <span
+      data-icon-unlocked
+      class="absolute inset-0 opacity-0 transition-opacity duration-300"
+    >
+      <LucideIcon name="lock-open" class="h-full w-full text-tui-gold" />
+    </span>
+  </span>
+  <span
+    data-redacted-text
+    class="font-mono text-sm uppercase tracking-[0.15em] text-tui-red transition-colors duration-300 sm:text-base sm:tracking-[0.2em]"
+  >
+    {placeholder}
+  </span>
+</button>
+
+<script>
+  const CHARSET = "#$%&*+-/<>=~^:;.,_|01ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  function scramble(el: HTMLElement, finalText: string, onDone: () => void) {
+    let iteration = 0;
+    const id = setInterval(() => {
+      el.textContent = finalText
+        .split("")
+        .map((char, index) => {
+          if (char === " ") return " ";
+          if (index < iteration) return finalText[index];
+          return CHARSET[Math.floor(Math.random() * CHARSET.length)];
+        })
+        .join("");
+
+      if (iteration >= finalText.length) {
+        clearInterval(id);
+        el.textContent = finalText;
+        onDone();
+      }
+      iteration += 0.6;
+    }, 30);
+  }
+
+  function bindRedactedLines() {
+    for (const button of document.querySelectorAll<HTMLButtonElement>(
+      "[data-redacted]",
+    )) {
+      if (button.dataset.bound) continue;
+      button.dataset.bound = "true";
+
+      button.addEventListener("click", () => {
+        if (button.disabled) return;
+        button.disabled = true;
+
+        const text = button.dataset.redacted ?? "";
+        const textEl = button.querySelector<HTMLElement>(
+          "[data-redacted-text]",
+        );
+        const lockedIcon =
+          button.querySelector<HTMLElement>("[data-icon-locked]");
+        const unlockedIcon = button.querySelector<HTMLElement>(
+          "[data-icon-unlocked]",
+        );
+        if (!textEl) return;
+
+        lockedIcon?.classList.add("opacity-0");
+        unlockedIcon?.classList.remove("opacity-0");
+
+        const reduceMotion = window.matchMedia(
+          "(prefers-reduced-motion: reduce)",
+        ).matches;
+        const finish = () => {
+          textEl.classList.remove("text-tui-red");
+          textEl.classList.add("text-tui-gold");
+        };
+
+        if (reduceMotion) {
+          textEl.textContent = text;
+          finish();
+          return;
+        }
+
+        scramble(textEl, text, finish);
+      });
+    }
+  }
+
+  bindRedactedLines();
+  document.addEventListener("astro:page-load", bindRedactedLines);
+</script>
