@@ -11,19 +11,19 @@ tooltips:
   - tag: React
     description: "React is a JavaScript library for building **user interfaces** out of reusable components. It is one of the most widely adopted front-end tools on the web."
   - tag: OSINT
-    description: "**Open-Source Intelligence**: investigating a target using **publicly available information** (social media, public records, leaked data, DNS, etc.)without direct interaction."
+    description: "**Open-Source Intelligence**: investigating a target using **publicly available information** (social media, public records, leaked data, DNS, etc.) without direct interaction."
   - tag: Coding
-    description: "General **software development**, writing, structuring, and maintaining code across languages and paradigms, independent of any specific stack."
+    description: "General **software development**, writing, structuring, and maintaining code across languages and paradigms."
   - tag: Forensics
-    description: "**Digital forensics**, recovering, preserving, and analyzing data from devices or systems, typically to reconstruct events after an incident or for investigative purposes."
+    description: "Digital forensics, recovering, preserving, and **analyzing data from devices or systems**, typically to reconstruct events after an incident or for investigative purposes."
   - tag: Offensive Security
     description: "The practice of proactively attacking systems (**pentesting**, red teaming, exploit development) to find and fix vulnerabilities before real attackers do."
   - tag: Reverse Engineering
-    description: "Analyzing compiled binaries or systems to understand their internal logic without access to the original source code, often used to find **vulnerabilities** or malware behavior."
+    description: "Analyzing compiled binaries or systems to **understand their internal logic** without access to the original source code, often used to find vulnerabilities or malware behavior."
   - tag: Hardening
-    description: "System **hardening**, reducing a system's attack surface by disabling unnecessary services, enforcing strict configurations, and applying security best practices."
+    description: "**Reducing a system's attack surface** by disabling unnecessary services, enforcing strict configurations, and applying security best practices."
   - tag: Arch Linux
-    description: "A minimalist, rolling-release **Linux distribution** that favors simplicity and manual configuration over sane defaults, giving full control over the system."
+    description: "A minimalist, rolling-release Linux distribution that favors simplicity and manual configuration over sane defaults, giving **full control over the system**."
   - tag: VSCodium
     description: "A community-driven, **telemetry-free** build of VS Code's open-source codebase, offering the same editor experience without Microsoft's branding or tracking."
   - tag: GitHub
@@ -35,19 +35,21 @@ tooltips:
   - tag: Nmap
     description: "A **network scanning** tool used to discover hosts, open ports, and services on a network, widely used for reconnaissance and security auditing."
   - tag: Wireshark
-    description: "A **network protocol analyzer** that captures and inspects traffic in real time, used for debugging networks and analyzing packet-level security issues."
+    description: "A network protocol analyzer that captures and **inspects traffic in real time**, used for debugging networks and analyzing packet-level security issues."
   - tag: Raspberry Pi
     description: "A low-cost, credit-card-sized **single-board computer** often used for home labs, embedded projects, and running lightweight always-on services."
   - tag: Cryptography
-    description: "The study and application of techniques for secure communication, including **encryption**, hashing, and key exchange, used to protect data confidentiality and integrity."
+    description: "The study and application of techniques for **secure communication**, including encryption, hashing, and key exchange, used to protect data confidentiality and integrity."
   - tag: Networking
-    description: "The design, implementation, and analysis of systems that connect and exchange data between computers, covering **protocols**, routing, and infrastructure."
+    description: "The design, implementation, and analysis of systems that connect and **exchange data between computers**, covering protocols, routing, and infrastructure."
   - tag: Infrastructure
-    description: "The underlying systems, servers, and services an application runs on, including **provisioning**, deployment, and maintenance, often cloud-based."
+    description: "The **underlying systems**, servers, and services an application runs on, including provisioning, deployment, and maintenance, often cloud-based."
   - tag: Wails
-    description: "A framework for building desktop apps in **Go**, rendering a web-based frontend inside a native OS window. Similar in spirit to Electron, but with a Go backend instead of Node.js."
+    description: "A framework for building desktop apps in **Go**, rendering a web-based frontend inside a native OS window. Similar in spirit to Electron, but with a Go backend."
   - tag: Gaming
-    description: "A casual category tag for projects built around video games, whether tooling, modding, or player-facing utilities."
+    description: "A casual category tag for projects built around **video games**, whether tooling, modding, or player-facing utilities."
   - tag: CLI
-    description: "**Command-Line Interface**: a text-based way to run a program by typing commands into a terminal, as opposed to a graphical interface."
+    description: "**Command-Line Interface**: text-only input where the user types commands and receives text output in a **terminal**."
+  - tag: TUI
+    description: "**Text-based User Interface**: user interface that includes visual elements (like windows, menus, forms, etc.) directly in a **terminal**."
 ---

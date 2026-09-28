@@ -12,6 +12,8 @@ interface Props {
 
 const { title, description } = Astro.props;
 
+const currentYear = new Date().getFullYear();
+
 const tooltipsEntry = await getEntry("pages", "tooltips");
 const tooltipsMap = Object.fromEntries(
   (tooltipsEntry?.data.tooltips ?? []).map((t) => [
@@ -36,6 +38,11 @@ const tooltipsMap = Object.fromEntries(
     <div class="pt-20">
       <slot />
     </div>
+    <footer
+      class="fixed bottom-3 right-4 z-30 hidden text-[10px] uppercase tracking-[0.15em] text-tui-muted sm:block"
+    >
+      &copy; <span id="copyright-year">{currentYear}</span> M4elstr0m
+    </footer>
     <script
       type="application/json"
       id="tooltip-data"
@@ -229,6 +236,17 @@ const tooltipsMap = Object.fromEntries(
 
   markExternalLinks();
   document.addEventListener("astro:page-load", markExternalLinks);
+
+  function updateCopyrightYear() {
+    const el = document.getElementById("copyright-year");
+    // Corrects the build-time year client-side, so the footer stays
+    // accurate even if the static site isn't rebuilt across a year
+    // boundary - a visitor's browser always knows the real current date.
+    if (el) el.textContent = String(new Date().getFullYear());
+  }
+
+  updateCopyrightYear();
+  document.addEventListener("astro:page-load", updateCopyrightYear);
 
   function depth(pathname: string) {
     return pathname.split("/").filter(Boolean).length;
