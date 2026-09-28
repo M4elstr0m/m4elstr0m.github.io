@@ -12,7 +12,7 @@ tags:
     tooltip: "React est une bibliothèque JavaScript pour construire des **interfaces utilisateur** à partir de composants réutilisables. C'est l'un des outils front-end les plus largement adoptés sur le web."
   - tag: OSINT
     label: ROSO
-    tooltip: "**Renseignement d'origine sources ouvertes** (OSINT) : investiguer une cible à partir d'**informations publiquement accessibles** (réseaux sociaux, registres publics, données divulguées, DNS, etc.) sans interaction directe."
+    tooltip: "**Renseignement d'origine sources ouvertes** (**OSINT**) : investiguer une cible à partir d'**informations publiquement accessibles** (réseaux sociaux, registres publics, données divulguées, DNS, etc.) sans interaction directe."
   - tag: Coding
     label: Programmation
     tooltip: "**Programmation** au sens large : écrire, structurer et maintenir du code dans différents langages et paradigmes."
