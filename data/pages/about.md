@@ -1,10 +1,11 @@
 ---
 interests:
   - osint
-  - forensics
   - coding
+  - forensics
   - offensive security
   - reverse engineering
+  - hardening
 stack:
   - Go
   - Rust
@@ -16,9 +17,10 @@ tools:
   - VSCodium
   - GitHub
   - Autopsy
-  - Cellebrite
+  - Cellebrite Reader
   - Nmap
   - Wireshark
+  - Raspberry Pi
 languages:
   - name: French
     level: native
